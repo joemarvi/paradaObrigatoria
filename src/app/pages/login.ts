@@ -11,8 +11,14 @@ import { Icon } from '../shared/ui';
   template: `<main class="login-page">
     <section class="login-story">
       <div class="brand">
-        <div class="brand-mark"><app-icon name="wash" /></div>
-        <div>PARADA<span>OBRIGATÓRIA</span></div>
+        <img
+          class="brand-logo"
+          src="brand-logo.png"
+          alt="Lava Jato Parada Obrigatória"
+          width="240"
+          height="240"
+          fetchpriority="high"
+        />
       </div>
       <div>
         <span class="eyebrow">CUIDADO EM CADA DETALHE</span>
@@ -30,7 +36,15 @@ import { Icon } from '../shared/ui';
     </section>
     <section class="login-form-panel">
       <form class="login-form" [formGroup]="form" (ngSubmit)="submit()">
-        <div class="login-symbol"><app-icon name="shield" /></div>
+        <div class="login-symbol">
+          <img
+            class="brand-logo"
+            src="brand-logo.png"
+            alt="Lava Jato Parada Obrigatória"
+            width="96"
+            height="96"
+          />
+        </div>
         <span class="eyebrow">BEM-VINDO À PARADA</span>
         <h2>
           {{

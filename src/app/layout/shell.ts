@@ -13,10 +13,21 @@ import { Notifications, friendlyError } from '../core/notifications';
       <button class="sidebar-backdrop" aria-label="Fechar menu" (click)="menu.set(false)"></button>
     }
     <aside class="sidebar" [class.open]="menu()">
-      <a routerLink="/dashboard" class="brand"
-        ><div class="brand-mark"><app-icon name="wash" /></div>
-        <div>PARADA<span>OBRIGATÓRIA</span><small>GESTÃO DO LAVA-JATO</small></div></a
+      <a
+        routerLink="/dashboard"
+        class="brand brand-sidebar"
+        aria-label="Parada Obrigatória — início"
       >
+        <img
+          class="brand-logo"
+          src="brand-logo.png"
+          alt="Lava Jato Parada Obrigatória"
+          width="112"
+          height="112"
+          fetchpriority="high"
+        />
+        <small>GESTÃO DO LAVA-JATO</small>
+      </a>
       <div class="nav-caption">OPERAÇÃO</div>
       <nav aria-label="Navegação principal">
         @for (item of nav; track item.path) {

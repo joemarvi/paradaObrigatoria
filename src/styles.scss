@@ -1,16 +1,21 @@
 :root {
-  --primary: #087f72;
-  --primary-dark: #075c55;
-  --secondary: #122b2c;
-  --accent: #d9ef93;
-  --background: #f5f7f7;
+  --primary: #0066ad;
+  --primary-dark: #00487f;
+  --primary-soft: #eaf5ff;
+  --brand-aqua: #38cbed;
+  --brand-red: #d91524;
+  --brand-red-dark: #ae1020;
+  --brand-yellow: #fff075;
+  --secondary: #052d53;
+  --accent: #fff075;
+  --background: #f3f7fb;
   --surface: #fff;
-  --text: #182e30;
-  --muted: #718184;
+  --text: #102d46;
+  --muted: #63788d;
   --success: #168364;
   --warning: #b7791f;
   --danger: #c34444;
-  --border: #e4eaea;
+  --border: #dfe8ef;
   --radius: 14px;
   font-family:
     Inter,
@@ -64,7 +69,7 @@ a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 3px solid #83cfc5;
+  outline: 3px solid var(--brand-aqua);
   outline-offset: 3px;
 }
 h1,
@@ -91,7 +96,7 @@ small {
 input,
 select,
 textarea {
-  border: 1px solid #dce4e4;
+  border: 1px solid #d4e1ec;
   border-radius: 8px;
   background: #fff;
   padding: 11px 13px;
@@ -130,7 +135,7 @@ label small {
   justify-content: center;
   gap: 9px;
   background: white;
-  border: 1px solid #dce4e4;
+  border: 1px solid #d4e1ec;
   border-radius: 8px;
   padding: 11px 16px;
   font-weight: 600;
@@ -139,15 +144,15 @@ label small {
   white-space: nowrap;
 }
 .button:hover {
-  background: #eef4f3;
+  background: var(--primary-soft);
 }
 .button.primary {
-  background: var(--primary);
+  background: var(--brand-red);
   color: #fff;
-  border-color: var(--primary);
+  border-color: var(--brand-red);
 }
 .button.primary:hover {
-  background: var(--primary-dark);
+  background: var(--brand-red-dark);
 }
 .button.danger {
   border-color: #ecc5c5;
@@ -173,7 +178,7 @@ label small {
   border-radius: 8px;
 }
 .icon-button:hover {
-  background: #edf3f2;
+  background: var(--primary-soft);
 }
 .text-button {
   border: 0;
@@ -219,28 +224,41 @@ label small {
   color: var(--muted);
   margin-top: 6px;
 }
-.brand-mark {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--primary);
-  color: white;
-  border-radius: 12px;
-  width: 43px;
-  height: 49px;
-  transform: rotate(-5deg);
+.brand-sidebar {
+  flex-direction: column;
+  gap: 5px;
+  padding: 0;
 }
-.brand-mark app-icon {
-  width: 27px;
-  height: 27px;
-  transform: rotate(5deg);
+.brand-logo {
+  display: block;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.brand-sidebar .brand-logo {
+  width: 112px;
+  height: 112px;
+}
+.brand-sidebar small {
+  color: var(--primary-dark);
+  font-size: 9px;
+  margin: 0;
+}
+.login-story .brand {
+  padding: 0;
+  position: relative;
+  z-index: 1;
+}
+.login-story .brand-logo {
+  width: min(240px, 100%);
+  height: auto;
+  filter: drop-shadow(0 10px 25px #001c4e66);
 }
 .nav-caption {
   font-size: 10px;
   letter-spacing: 1.8px;
   font-weight: 700;
-  color: #95a0a1;
-  margin: 40px 16px 15px;
+  color: #76899c;
+  margin: 24px 16px 15px;
 }
 .sidebar nav {
   display: flex;
@@ -251,17 +269,18 @@ label small {
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #6c7a7c;
+  color: #586f85;
   padding: 12px 14px;
   border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
 }
 .sidebar nav a:hover {
-  background: #f3f7f6;
+  background: #f1f7fc;
 }
 .sidebar nav a.active {
-  background: #e9f5f1;
+  box-shadow: inset 3px 0 var(--brand-red);
+  background: var(--primary-soft);
   color: var(--primary);
   font-weight: 700;
 }
@@ -270,7 +289,7 @@ label small {
   font-size: 10px;
   min-width: 20px;
   text-align: center;
-  background: #d3eae3;
+  background: #cce6f6;
   border-radius: 5px;
   padding: 3px;
 }
@@ -299,6 +318,7 @@ label small {
   min-width: 0;
 }
 .topbar {
+  border-top: 3px solid var(--primary);
   height: 79px;
   display: flex;
   align-items: center;
@@ -313,7 +333,7 @@ label small {
 }
 .breadcrumb span {
   margin: 0 12px;
-  color: #bec8c8;
+  color: #bacbda;
 }
 .topbar-start,
 .topbar-end {
@@ -330,7 +350,7 @@ label small {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: #e8f1ed;
+  background: var(--primary-soft);
   display: grid;
   place-items: center;
   color: var(--primary);
@@ -441,7 +461,7 @@ main#main-content {
   gap: 5px;
 }
 .metric-label app-icon {
-  background: #eef5f3;
+  background: var(--primary-soft);
   color: var(--primary);
   padding: 8px;
   box-sizing: content-box;
@@ -466,10 +486,10 @@ main#main-content {
 }
 .metric.highlight .metric-label,
 .metric.highlight small {
-  color: #aac0bc;
+  color: #b8d8ef;
 }
 .metric.highlight app-icon {
-  background: #294543;
+  background: #124873;
   color: var(--accent);
 }
 .metric.highlight strong {
@@ -504,14 +524,14 @@ th {
   letter-spacing: 0.8px;
   color: var(--muted);
   font-weight: 600;
-  background: #fbfcfc;
+  background: #fafcff;
   padding: 14px 22px;
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
 }
 td {
   padding: 17px 22px;
-  border-bottom: 1px solid #edf1f1;
+  border-bottom: 1px solid #e7eef5;
   font-size: 12px;
 }
 tr:last-child td {
@@ -619,7 +639,7 @@ td small {
   color: var(--muted);
 }
 .empty app-icon {
-  color: #a3bfba;
+  color: #7ca6c5;
   width: 34px;
   height: 34px;
   margin-bottom: 14px;
@@ -653,8 +673,8 @@ td small {
 .alert {
   border-radius: 8px;
   padding: 12px 16px;
-  background: #f0f5f3;
-  color: #55766d;
+  background: #eef6fd;
+  color: #446782;
   margin: 12px 0;
   font-size: 12px;
   display: flex;
@@ -754,7 +774,7 @@ td small {
 }
 .checkbox-list label {
   padding: 12px;
-  background: #f5f8f7;
+  background: #f4f8fc;
   border: 1px solid var(--border);
   border-radius: 8px;
 }
@@ -762,7 +782,7 @@ td small {
   display: flex;
   justify-content: space-between;
   padding: 18px;
-  background: #eaf5ef;
+  background: var(--primary-soft);
   border-radius: 9px;
   align-items: center;
   margin-top: 18px;
@@ -781,7 +801,7 @@ td small {
   align-items: center;
   max-width: min(500px, calc(100% - 32px));
   padding: 16px 20px;
-  background: #143f36;
+  background: #073e69;
   color: #fff;
   border-radius: 10px;
   box-shadow: 0 5px 30px #0002;
@@ -799,13 +819,13 @@ td small {
 .page-footer {
   padding: 0 36px 23px;
   font-size: 10px;
-  color: #9aa8a8;
+  color: #71869c;
   display: flex;
   justify-content: space-between;
 }
 .loading-bar {
   height: 3px;
-  background: linear-gradient(90deg, #e2f1ec, var(--primary), #e2f1ec);
+  background: linear-gradient(90deg, #d8efff, var(--primary), #d8efff);
   background-size: 200%;
   animation: loading 1.5s infinite;
 }
@@ -831,7 +851,7 @@ td small {
   font-size: 12px;
 }
 .tabs button.active {
-  background: #e9f4ef;
+  background: var(--primary-soft);
   color: var(--primary);
   font-weight: 600;
 }
@@ -841,7 +861,7 @@ td small {
   gap: 18px;
 }
 .kanban-column {
-  background: #eef2f2;
+  background: #eaf1f8;
   border-radius: 12px;
   padding: 15px;
   min-height: 400px;
@@ -884,7 +904,7 @@ td small {
 .order-card .services {
   padding: 10px 0;
   font-size: 12px;
-  color: #486662;
+  color: #446782;
   border-bottom: 1px solid var(--border);
 }
 .order-card-meta {
@@ -906,7 +926,7 @@ td small {
   align-items: flex-start;
 }
 .appointment-time {
-  background: #f0f5f3;
+  background: #eef6fd;
   color: var(--primary);
   border-radius: 8px;
   padding: 11px 9px;
@@ -939,7 +959,7 @@ td small {
   margin-bottom: 9px;
 }
 .service-bar-track {
-  background: #eef3f1;
+  background: #e9f1f8;
   border-radius: 4px;
   height: 7px;
   overflow: hidden;
@@ -990,7 +1010,9 @@ td small {
   grid-template-columns: 1.05fr 1fr;
 }
 .login-story {
-  background: var(--secondary);
+  background:
+    radial-gradient(ellipse at 15% 20%, #057cb4 0%, transparent 55%),
+    linear-gradient(145deg, #063e6d, var(--secondary));
   color: white;
   padding: 55px 65px;
   display: flex;
@@ -1000,12 +1022,25 @@ td small {
   position: relative;
   overflow: hidden;
 }
+.login-story::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  inset-inline: 0;
+  height: 5px;
+  background: linear-gradient(
+    90deg,
+    var(--brand-red) 0% 65%,
+    var(--brand-yellow) 65% 82%,
+    var(--brand-aqua) 82%
+  );
+}
 .login-story:after {
   content: '';
   position: absolute;
   width: 450px;
   height: 450px;
-  border: 60px solid #28433b;
+  border: 60px solid #0a5a8b;
   border-radius: 50%;
   right: -220px;
   bottom: -210px;
@@ -1026,19 +1061,19 @@ td small {
 .login-story p {
   font-size: 15px;
   line-height: 1.8;
-  color: #afc4bf;
+  color: #c1dcee;
   max-width: 380px;
   margin-top: 25px;
 }
 .login-story small {
-  color: #8ba49e;
+  color: #b5d1e5;
 }
 .login-features {
   display: flex;
   flex-wrap: wrap;
   gap: 18px;
   margin-top: 40px;
-  color: #d3e1dc;
+  color: #e0f1ff;
   font-size: 11px;
 }
 .login-features span {
@@ -1074,18 +1109,11 @@ td small {
   margin: 8px auto;
 }
 .login-symbol {
-  display: grid;
-  place-items: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  background: #eaf5ef;
-  color: var(--primary);
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 }
-.login-symbol app-icon {
-  width: 26px;
-  height: 26px;
+.login-symbol .brand-logo {
+  width: 96px;
+  height: 96px;
 }
 .login-divider {
   border-top: 1px solid var(--border);
@@ -1164,7 +1192,7 @@ td small {
 .calendar-event {
   margin: 9px;
   padding: 12px;
-  background: #eaf4f0;
+  background: var(--primary-soft);
   border-radius: 8px;
   font-size: 11px;
   line-height: 1.8;
@@ -1181,7 +1209,7 @@ td small {
 }
 .report-bar {
   flex: 1;
-  background: #229584;
+  background: var(--primary);
   border-radius: 4px 4px 0 0;
   min-height: 2px;
   position: relative;
@@ -1245,6 +1273,7 @@ td small {
     padding: 26px;
   }
   .topbar {
+    border-top: 3px solid var(--primary);
     padding: 0 26px;
   }
   .dashboard-grid {
@@ -1343,6 +1372,7 @@ td small {
     display: inline-flex;
   }
   .topbar {
+    border-top: 3px solid var(--primary);
     height: 65px;
     padding: 0 16px;
   }

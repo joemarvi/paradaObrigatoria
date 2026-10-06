@@ -8,7 +8,7 @@ Aplicação Angular funcional com **modo de demonstração explícito**, integra
 
 **Ainda é necessário criar/configurar um projeto Supabase, aplicar as migrations, convidar os usuários e preencher as duas variáveis públicas.** Não havia credenciais, banco ou remote Git no diretório original. Autenticação contra o serviço hospedado só pode ser homologada depois disso.
 
-A imagem de referência mencionada no pedido não estava disponível entre os anexos. O tema verde petróleo, superfícies claras e acento verde suave é **provisório**, centralizado em `src/styles.scss` para adaptação à marca. O símbolo de gota também é provisório.
+A identidade visual segue o emblema enviado pelo proprietário: azul/ciano da água, vermelho da faixa, amarelo do nome e branco da espuma. O logo preparado a partir da referência aparece no login e na navegação, com paleta centralizada em `src/styles.scss`. Veja [cores e preparação do logo](docs/branding.md).
 
 ## Stack e requisitos
 
@@ -120,7 +120,7 @@ Supabase e Cloudflare oferecem planos gratuitos sujeitos a limites, pausas e mud
 - Cadastro de usuário Auth por convite no painel; UI altera somente perfis existentes. Não há secrets administrativos no navegador.
 - Agenda permite edição de status e valida capacidade, mas não cria automaticamente uma OS; entrada é registrada no módulo de ordens.
 - Relatórios de ticket mostram recebido no período ÷ ordens com recebimento, inclusive pagamentos parciais. Valores dos serviços/desempenho usam conclusão e são distintos dos recebimentos.
-- Identidade visual definitiva, SMTP e autenticação hospedada aguardam recursos externos. Faça um piloto com dados reais antes do uso financeiro diário.
+- SMTP e autenticação hospedada aguardam homologação no ambiente real. Faça um piloto com dados reais antes do uso financeiro diário.
 
 ## Git
 
