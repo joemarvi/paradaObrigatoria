@@ -6,17 +6,6 @@ import { friendlyError } from '../core/notifications';
 @Component({
   imports: [RouterLink, ReactiveFormsModule],
   template: `<main class="customer-portal">
-    <header class="portal-header">
-      <a routerLink="/" class="brand"
-        ><img
-          class="brand-logo"
-          src="brand-logo.png"
-          width="64"
-          height="64"
-          alt="Parada Obrigatória"
-        /><strong>Parada Obrigatória</strong></a
-      ><a routerLink="/">Voltar à home</a>
-    </header>
     <section class="panel portal-card">
       <h1>Entre para agendar</h1>
       <p>Acesse seus veículos e agendamentos.</p>
