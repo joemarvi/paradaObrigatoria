@@ -21,6 +21,11 @@ export function friendlyError(error: unknown): string {
   if (e.code === '23503') return 'Um registro relacionado não está disponível. Atualize a página.';
   const known = [
     'Acesso não permitido',
+    'Informe nome e telefone válidos',
+    'Informe marca, modelo e cor válidos',
+    'Escolha um horário futuro nos próximos 365 dias',
+    'Observações devem ter até 1000 caracteres',
+    'Agendamento não pode ser cancelado',
     'Veículo e cliente inválidos',
     'Funcionário inativo',
     'Selecione um serviço',

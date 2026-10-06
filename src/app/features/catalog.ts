@@ -1,3 +1,4 @@
+import { alphabetical, VEHICLE_BRANDS, VEHICLE_COLORS } from '../core/vehicle-options';
 import { Component, OnDestroy, computed, effect, inject, signal, untracked } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CurrencyPipe, DatePipe } from '@angular/common';
@@ -30,80 +31,6 @@ interface CatalogConfig {
   fields: Field[];
   columns: string[];
 }
-const alphabetical = (values: string[]) =>
-  [...values].sort((a, b) => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' }));
-const VEHICLE_BRANDS = alphabetical([
-  'Abarth',
-  'Agrale',
-  'Alfa Romeo',
-  'Aston Martin',
-  'Audi',
-  'Bentley',
-  'BMW',
-  'BYD',
-  'Caoa Chery',
-  'Changan',
-  'Chevrolet',
-  'Chrysler',
-  'Citroën',
-  'Dafra',
-  'Dodge',
-  'Ducati',
-  'Ferrari',
-  'Fiat',
-  'Ford',
-  'GWM',
-  'Harley-Davidson',
-  'Honda',
-  'Hyundai',
-  'Iveco',
-  'JAC',
-  'Jaguar',
-  'Jeep',
-  'Kawasaki',
-  'Kia',
-  'Lamborghini',
-  'Land Rover',
-  'Lexus',
-  'Lifan',
-  'Maserati',
-  'Mercedes-Benz',
-  'Mini',
-  'Mitsubishi',
-  'Nissan',
-  'Peugeot',
-  'Porsche',
-  'RAM',
-  'Renault',
-  'Royal Enfield',
-  'Scania',
-  'Shineray',
-  'Subaru',
-  'Suzuki',
-  'Tesla',
-  'Toyota',
-  'Triumph',
-  'Volkswagen',
-  'Volvo',
-  'Yamaha',
-]);
-const VEHICLE_COLORS = alphabetical([
-  'Amarelo',
-  'Azul',
-  'Bege',
-  'Branco',
-  'Bronze',
-  'Cinza',
-  'Dourado',
-  'Laranja',
-  'Marrom',
-  'Prata',
-  'Preto',
-  'Rosa',
-  'Roxo',
-  'Verde',
-  'Vermelho',
-]);
 const CONFIG: Record<string, CatalogConfig> = {
   clientes: {
     table: 'customers',

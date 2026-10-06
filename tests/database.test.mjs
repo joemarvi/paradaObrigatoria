@@ -449,3 +449,136 @@ test('recupera colisão de audit_logs e funções previamente criadas sem altera
     await target.close();
   }
 });
+
+const portalUser = '00000000-0000-4000-8000-000000000004';
+const otherPortalUser = '00000000-0000-4000-8000-000000000005';
+let portalCustomer, portalVehicle, portalAppointment;
+test('cadastro público cria apenas vínculo de cliente e é idempotente', async () => {
+  await asUser(null, 'anon');
+  await assert.rejects(
+    db.query("select public.register_customer('Cliente','11987654321')"),
+    /permission denied/,
+  );
+  await asUser(ids.admin);
+  await assert.rejects(
+    db.query("select public.register_customer('Equipe','11987654321')"),
+    /Acesso não permitido/,
+  );
+  await db.exec('reset role');
+  await db.exec(`insert into auth.users values ('${portalUser}'),('${otherPortalUser}')`);
+  await asUser(portalUser);
+  await assert.rejects(
+    db.query("select public.register_customer('X','123')"),
+    /nome e telefone válidos/,
+  );
+  portalCustomer = (
+    await db.query("select public.register_customer('Cliente do portal','11987654321') as id")
+  ).rows[0].id;
+  assert.equal(
+    (await db.query("select public.register_customer('Outro nome','11987654321') as id")).rows[0]
+      .id,
+    portalCustomer,
+  );
+  assert.equal((await db.query('select * from public.customers')).rows.length, 1);
+  assert.equal((await db.query('select * from public.profiles')).rows.length, 0);
+  await assert.rejects(
+    db.query(
+      `insert into public.profiles(id,name,role) values ('${portalUser}','Invasor','administrador')`,
+    ),
+    /row-level security/,
+  );
+  await assert.rejects(
+    db.query('update public.customer_accounts set customer_id=$1', [ids.customer]),
+    /permission denied/,
+  );
+});
+test('cliente cadastra somente veículo próprio e não altera operações internas', async () => {
+  await asUser(portalUser);
+  portalVehicle = (
+    await db.query(
+      "select public.portal_add_vehicle('DEF-4G56','Ford','Ka','Branco','carro') as id",
+    )
+  ).rows[0].id;
+  const vehicles = (await db.query('select * from public.vehicles')).rows;
+  assert.equal(vehicles.length, 1);
+  assert.equal(vehicles[0].customer_id, portalCustomer);
+  assert.equal(vehicles[0].plate, 'DEF4G56');
+  assert.equal((await db.query('select * from public.work_orders')).rows.length, 0);
+  assert.equal((await db.query('select * from public.payments')).rows.length, 0);
+  await assert.rejects(db.query('select public.open_register(0)'), /Acesso não permitido/);
+  await assert.rejects(
+    db.query(
+      "insert into public.appointments(customer_id,vehicle_id,service_id,starts_at,duration_minutes) values ($1,$2,$3,now()+interval '30 days',60)",
+      [portalCustomer, portalVehicle, ids.service],
+    ),
+    /row-level security/,
+  );
+});
+test('agendamento do cliente usa duração do catálogo e rejeita veículo alheio, passado e excesso de capacidade', async () => {
+  await asUser(portalUser);
+  await assert.rejects(
+    db.query("select public.portal_book($1,$2,now()+interval '300 days','')", [
+      ids.vehicle,
+      ids.service,
+    ]),
+    /Veículo não pertence/,
+  );
+  await assert.rejects(
+    db.query("select public.portal_book($1,$2,now()-interval '1 day','')", [
+      portalVehicle,
+      ids.service,
+    ]),
+    /horário futuro/,
+  );
+  const query =
+    "select public.portal_book($1,$2,date_trunc('day',now())+interval '300 days 12 hours','') as id";
+  portalAppointment = (await db.query(query, [portalVehicle, ids.service])).rows[0].id;
+  const a = (await db.query('select * from public.appointments')).rows[0];
+  assert.equal(a.customer_id, portalCustomer);
+  assert.equal(a.status, 'AGENDADO');
+  assert.equal(a.duration_minutes, 60);
+  await db.query(query, [portalVehicle, ids.service]);
+  await assert.rejects(
+    db.query(query, [portalVehicle, ids.service]),
+    /Horário sem disponibilidade/,
+  );
+  assert.equal((await db.query('select * from public.appointments')).rows.length, 2);
+});
+test('outro cliente não lê nem cancela agendamentos alheios; equipe visualiza a reserva', async () => {
+  await asUser(otherPortalUser);
+  await db.query("select public.register_customer('Segundo cliente','11999999999')");
+  assert.equal((await db.query('select * from public.vehicles')).rows.length, 0);
+  assert.equal((await db.query('select * from public.appointments')).rows.length, 0);
+  await assert.rejects(
+    db.query('select public.portal_cancel($1)', [portalAppointment]),
+    /não pode ser cancelado/,
+  );
+  await asUser(ids.attendant);
+  assert.equal(
+    (await db.query('select customer_id from public.appointments where id=$1', [portalAppointment]))
+      .rows[0].customer_id,
+    portalCustomer,
+  );
+  await asUser(portalUser);
+  await db.query('select public.portal_cancel($1)', [portalAppointment]);
+  assert.equal(
+    (await db.query('select status from public.appointments where id=$1', [portalAppointment]))
+      .rows[0].status,
+    'CANCELADO',
+  );
+  await assert.rejects(
+    db.query('select public.portal_cancel($1)', [portalAppointment]),
+    /não pode ser cancelado/,
+  );
+});
+test('cliente desativado perde acesso ao portal e às reservas', async () => {
+  await asUser(ids.admin);
+  await db.query('update public.customers set active=false where id=$1', [portalCustomer]);
+  await asUser(portalUser);
+  assert.equal((await db.query('select * from public.appointments')).rows.length, 0);
+  assert.equal((await db.query('select * from public.services')).rows.length, 0);
+  await assert.rejects(
+    db.query("select public.portal_add_vehicle('GHI7J89','Ford','Ka')"),
+    /Acesso não permitido/,
+  );
+});

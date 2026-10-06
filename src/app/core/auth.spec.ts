@@ -96,4 +96,25 @@ describe('Autenticação e controle de acesso', () => {
     await TestBed.runInInjectionContext(() => authGuard(route, {} as RouterStateSnapshot));
     expect(router.createUrlTree).toHaveBeenLastCalledWith(['/fila']);
   });
+  it('cliente autenticado não acessa a estrutura ou permissões da equipe', async () => {
+    const auth = TestBed.inject(Auth);
+    await auth.ready;
+    auth.user.set({ id: 'cliente' } as never);
+    auth.customer.set({
+      id: 'c1',
+      name: 'Cliente',
+      phone: '11987654321',
+      active: true,
+      created_at: '',
+    });
+    expect(auth.authenticated()).toBe(true);
+    expect(auth.role()).toBe('cliente');
+    expect(auth.allows(['administrador', 'gerente', 'atendente', 'operador'])).toBe(false);
+    await TestBed.runInInjectionContext(() =>
+      authGuard(new ActivatedRouteSnapshot(), {} as RouterStateSnapshot),
+    );
+    expect(router.createUrlTree).toHaveBeenLastCalledWith(['/cliente']);
+    await auth.logout();
+    expect(auth.customer()).toBeNull();
+  });
 });

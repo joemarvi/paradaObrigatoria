@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 test.beforeEach(async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/login');
   await expect(page).toHaveURL(/login/);
   await page.getByRole('button', { name: 'Abrir demonstração' }).click();
   await expect(page.getByRole('heading', { name: 'Visão geral', exact: true })).toBeVisible();

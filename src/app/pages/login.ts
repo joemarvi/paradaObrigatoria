@@ -1,13 +1,13 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Auth } from '../core/auth';
 import { environment } from '../core/environment';
 import { friendlyError } from '../core/notifications';
 import { Icon } from '../shared/ui';
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, Icon],
+  imports: [ReactiveFormsModule, Icon, RouterLink],
   template: `<main class="login-page">
     <section class="login-story">
       <span class="login-brand-name">Lava Jato · Parada Obrigatória</span>
@@ -99,6 +99,7 @@ import { Icon } from '../shared/ui';
             Abrir demonstração<app-icon name="arrow" />
           </button>
         }
+        <a class="text-button" routerLink="/cliente">Sou cliente · Cadastrar ou agendar</a>
         <small class="login-security"
           ><app-icon name="shield" /> Acesso restrito à equipe autorizada</small
         >
@@ -149,7 +150,13 @@ export class Login {
         this.message.set('Se o e-mail estiver cadastrado, você receberá as instruções.');
       } else {
         await this.auth.login(email, password);
-        await this.router.navigateByUrl(this.auth.role() === 'operador' ? '/fila' : '/dashboard');
+        await this.router.navigateByUrl(
+          this.auth.role() === 'cliente'
+            ? '/cliente'
+            : this.auth.role() === 'operador'
+              ? '/fila'
+              : '/dashboard',
+        );
       }
     } catch (e) {
       this.error.set(

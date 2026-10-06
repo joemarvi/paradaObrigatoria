@@ -3,7 +3,12 @@ import { authGuard } from './core/auth';
 const office = ['administrador', 'gerente', 'atendente'];
 const management = ['administrador', 'gerente'];
 export const routes: Routes = [
+  {
+    path: 'cliente',
+    loadComponent: () => import('./pages/customer-portal').then((m) => m.CustomerPortal),
+  },
   { path: 'login', loadComponent: () => import('./pages/login').then((m) => m.Login) },
+  { path: '', pathMatch: 'full', redirectTo: 'cliente' },
   {
     path: '',
     canActivate: [authGuard],

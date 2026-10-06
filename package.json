@@ -7,9 +7,10 @@
     "build": "node scripts/environment.mjs && ng build",
     "watch": "ng build --watch --configuration development",
     "test": "node scripts/environment.mjs && ng test --watch=false",
-    "lint": "eslint src scripts tests playwright.config.ts",
+    "lint": "eslint src scripts tests playwright.config.ts playwright.portal.config.ts",
     "test:e2e": "playwright test",
-    "test:db": "node tests/database.test.mjs"
+    "test:db": "node tests/database.test.mjs",
+    "test:portal": "node scripts/test-portal.mjs"
   },
   "private": true,
   "packageManager": "npm@11.16.0",

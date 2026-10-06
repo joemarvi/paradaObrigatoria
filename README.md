@@ -43,8 +43,8 @@ O script `scripts/environment.mjs` lê `.env` ou o ambiente de build e gera `src
 ## Supabase
 
 1. Crie um projeto PostgreSQL no plano adequado do Supabase.
-2. No SQL Editor, execute **em ordem** os seis arquivos de `supabase/migrations/`. Alternativamente, com Supabase CLI e projeto vinculado, use `supabase db push`.
-3. Em Authentication, desative cadastro público, configure Site URL e URLs autorizadas (`http://localhost:4200/login` e a URL final `/login`). Configure a política de senha com mínimo de 8 caracteres. Para e-mails de recuperação em produção, avalie as limitações do provedor de e-mail padrão e configure SMTP de sua escolha se necessário; nenhum SMTP pago foi adicionado.
+2. No SQL Editor, execute **em ordem** os sete arquivos de `supabase/migrations/`. Alternativamente, com Supabase CLI e projeto vinculado, use `supabase db push`.
+3. Em Authentication, habilite cadastro por e-mail para os clientes e mantenha a confirmação de e-mail. Configure Site URL e URLs autorizadas (`http://localhost:4200/login`, `http://localhost:4200/cliente` e as URLs finais `/login` e `/cliente`). Configure a política de senha com mínimo de 8 caracteres. Para e-mails de recuperação em produção, avalie as limitações do provedor de e-mail padrão e configure SMTP de sua escolha se necessário; nenhum SMTP pago foi adicionado.
 4. Crie ou convide o primeiro usuário pelo painel Auth. Copie seu UUID. Pelo SQL Editor, provisionado por um administrador do projeto, execute:
 
 ```sql
@@ -52,11 +52,19 @@ insert into public.profiles(id, name, role, active)
 values ('UUID_DO_USUARIO_AUTH', 'Administrador', 'administrador', true);
 ```
 
-5. Convide demais usuários e insira seus perfis, inicialmente com a menor permissão necessária. Não existe promoção automática por metadata, signup ou primeiro login.
+5. Convide demais usuários e insira seus perfis, inicialmente com a menor permissão necessária. Não existe promoção automática por metadata, signup ou primeiro login. O cadastro público cria somente um vínculo de cliente; os perfis da equipe continuam provisionados pelo administrador.
 6. Preencha `.env`, reinicie e valide login, recuperação, logout, cada perfil e as operações do caixa no projeto real.
 7. Cadastre categorias, serviços, equipe, clientes e veículos pela aplicação. Não existe seed de dados fictícios em produção.
 
 Detalhes: [banco e permissões](docs/database.md), [arquitetura](docs/architecture.md), [validação e pendências](docs/validation.md).
+
+## Portal do cliente
+
+A página inicial direciona para `/cliente`. O cliente cria uma conta com nome, telefone, e-mail e senha; confirma o e-mail; entra e conclui seus dados, se necessário. Depois cadastra um veículo, seleciona serviço e horário e acompanha ou cancela suas próprias reservas futuras. A equipe continua entrando por `/login` e visualiza as reservas em `/agendamentos`.
+
+**Projeto já configurado com as migrations 001 a 006:** aplique somente `supabase/migrations/202610060007_customer_portal.sql`. No painel Supabase, habilite cadastro por e-mail e autorize o redirecionamento para `/cliente`. A alteração de `supabase/config.toml` configura o ambiente local; não altera automaticamente o projeto hospedado.
+
+O portal usa `customer_accounts`, sem atribuir papel de funcionário. RLS restringe os dados ao cliente ativo; RPCs validam a propriedade do veículo, serviço ativo, duração do catálogo, horário futuro (até 365 dias) e capacidade simultânea. Valores de identidade nunca são obtidos por correspondência automática de telefone/e-mail. Clientes existentes podem precisar de conciliação pela equipe, pois o cadastro público cria um novo registro de cliente. Horários comerciais ainda são texto livre nas configurações; a reserva valida capacidade, mas não impõe uma grade de funcionamento.
 
 ## Funcionalidades
 
@@ -80,12 +88,13 @@ npm test
 npm run test:db
 npx playwright install --with-deps chromium
 npm run test:e2e
+npm run test:portal
 npm run lint
 npm run build
 npm audit
 ```
 
-Os testes de navegador usam a demonstração. Os testes de banco executam as migrations em PostgreSQL embarcado, com `auth.users`, `auth.uid()` e roles equivalentes para testar RLS. Apenas a criação da extensão `pgcrypto` é omitida nesse teste: `gen_random_uuid()` já é nativo. Isso não substitui a homologação de Supabase Auth, PostgREST, recuperação por e-mail e concorrência no serviço real.
+Os testes operacionais de navegador usam a demonstração. `npm run test:portal` testa o fluxo do cliente com respostas simuladas de Auth/PostgREST em um servidor próprio e restaura a configuração local ao terminar; não cria registros no Supabase remoto. Os testes de banco executam as migrations em PostgreSQL embarcado, com `auth.users`, `auth.uid()` e roles equivalentes para testar RLS. Apenas a criação da extensão `pgcrypto` é omitida nesse teste: `gen_random_uuid()` já é nativo. Isso não substitui a homologação de Supabase Auth, PostgREST, recuperação por e-mail e concorrência no serviço real.
 
 ## Estrutura
 

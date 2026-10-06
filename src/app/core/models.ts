@@ -1,4 +1,4 @@
-export type Role = 'administrador' | 'gerente' | 'atendente' | 'operador';
+export type Role = 'administrador' | 'gerente' | 'atendente' | 'operador' | 'cliente';
 export type OrderStatus =
   'AGUARDANDO' | 'EM_SERVICO' | 'AGUARDANDO_PAGAMENTO' | 'FINALIZADO' | 'CANCELADO';
 export type AppointmentStatus =

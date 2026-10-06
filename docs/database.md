@@ -4,6 +4,7 @@ Aplique os arquivos SQL em ordem num projeto Supabase novo. Não execute repetid
 
 | Tabela             | Uso                                                    |
 | ------------------ | ------------------------------------------------------ |
+| customer_accounts  | Vínculo de conta Auth com cliente, sem papel de equipe |
 | profiles           | Perfil associado ao UUID de Auth, papel e acesso ativo |
 | customers          | Clientes e contatos                                    |
 | vehicles           | Veículos e cliente proprietário                        |
@@ -66,3 +67,9 @@ Se `001_schema` falhou porque `audit_logs` já existe e as migrations `003_repor
 A auditoria da aplicação agora usa `public.parada_audit_logs`. A tabela `public.audit_logs` existente, seus dados e permissões são preservados. As permissões de `001` se limitam às tabelas e à sequência da aplicação. `003` e `006` substituem as funções já criadas, sem exigir exclusão. As migrations dependentes verificam os pré-requisitos antes de criar objetos.
 
 Este procedimento atende à falha relatada de `001`; não reaplique `001` se ela já foi concluída com sucesso. Em bancos já migrados, use uma nova migration de atualização.
+
+## Portal do cliente (migration 007)
+
+A migration `202610060007_customer_portal.sql` é incremental para bancos com `001` a `006` aplicadas. `customer_accounts` liga `auth.users` a um cliente e usa RLS de leitura do próprio vínculo. Não há trigger público de criação de perfis de equipe. Depois da confirmação e autenticação, `register_customer` provisiona o vínculo de forma idempotente e não aceita `customer_id` ou papel do usuário. Não vincula automaticamente cadastros existentes por contato.
+
+As políticas adicionais permitem somente consultas de cliente, veículos e agendamentos próprios, além de serviços ativos. Os clientes escrevem apenas pelas RPCs `portal_add_vehicle`, `portal_book` e `portal_cancel`. A reserva usa a duração do catálogo e o trigger existente de capacidade sob trava transacional. O cliente não escolhe o status nem o proprietário da reserva, e só cancela reservas futuras em estado agendado/confirmado. Clientes desativados não acessam dados operacionais do portal.
