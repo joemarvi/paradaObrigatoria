@@ -10,16 +10,7 @@ import { Icon } from '../shared/ui';
   imports: [ReactiveFormsModule, Icon],
   template: `<main class="login-page">
     <section class="login-story">
-      <div class="brand">
-        <img
-          class="brand-logo"
-          src="brand-logo.png"
-          alt="Lava Jato Parada Obrigatória"
-          width="240"
-          height="240"
-          fetchpriority="high"
-        />
-      </div>
+      <span class="login-brand-name">Lava Jato · Parada Obrigatória</span>
       <div>
         <span class="eyebrow">CUIDADO EM CADA DETALHE</span>
         <h1>Seu lava-jato.<br />Sua operação.<br /><em>Tudo em ordem.</em></h1>
@@ -36,15 +27,6 @@ import { Icon } from '../shared/ui';
     </section>
     <section class="login-form-panel">
       <form class="login-form" [formGroup]="form" (ngSubmit)="submit()">
-        <div class="login-symbol">
-          <img
-            class="brand-logo"
-            src="brand-logo.png"
-            alt="Lava Jato Parada Obrigatória"
-            width="96"
-            height="96"
-          />
-        </div>
         <span class="eyebrow">BEM-VINDO À PARADA</span>
         <h2>
           {{
