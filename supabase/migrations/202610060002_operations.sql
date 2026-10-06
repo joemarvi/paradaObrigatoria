@@ -1,4 +1,10 @@
 begin;
+do $$
+begin
+ if to_regtype('public.app_role') is null or to_regclass('public.customers') is null then
+  raise exception 'Pré-requisito ausente: execute 202610060001_schema.sql com sucesso antes desta migration.';
+ end if;
+end; $$;
 create function public.require_role(roles public.app_role[]) returns void language plpgsql security definer set search_path='' as $$
 begin if not public.has_role(roles) then raise exception 'Acesso não permitido' using errcode='42501'; end if; end; $$;
 revoke all on function public.require_role(public.app_role[]) from public, anon, authenticated;

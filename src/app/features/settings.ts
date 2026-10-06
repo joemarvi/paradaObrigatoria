@@ -145,7 +145,7 @@ import { Icon, Modal } from '../shared/ui';
             </tr>
           </thead>
           <tbody>
-            @for (a of store.db().audit_logs.slice(0, 50); track a.id) {
+            @for (a of store.db().parada_audit_logs.slice(0, 50); track a.id) {
               <tr>
                 <td>{{ a.created_at | date: 'dd/MM/yyyy HH:mm' : '-0300' }}</td>
                 <td>{{ actor(a.actor_id) }}</td>

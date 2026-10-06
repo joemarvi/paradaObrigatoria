@@ -84,7 +84,7 @@ create table public.business_settings (
  created_at timestamptz not null default now(), updated_at timestamptz not null default now()
 );
 insert into public.business_settings default values;
-create table public.audit_logs (
+create table public.parada_audit_logs (
  id uuid primary key default gen_random_uuid(), actor_id uuid references auth.users(id) on delete set null,
  action text not null, entity text not null, record_id uuid not null, created_at timestamptz not null default now()
 );
@@ -102,7 +102,7 @@ create index appointments_customer on public.appointments(customer_id);
 create index payments_date on public.payments(created_at);
 create index payments_order on public.payments(work_order_id);
 create index cash_movements_register on public.cash_movements(cash_register_id,created_at);
-create index audit_date on public.audit_logs(created_at desc);
+create index parada_audit_date on public.parada_audit_logs(created_at desc);
 
 create function public.has_role(roles public.app_role[]) returns boolean language sql stable security definer set search_path = '' as $$
  select exists(select 1 from public.profiles where id=(select auth.uid()) and active and role=any(roles));
@@ -113,7 +113,7 @@ create function public.touch_updated_at() returns trigger language plpgsql set s
 begin new.updated_at=now(); return new; end; $$;
 create function public.audit_change() returns trigger language plpgsql security definer set search_path='' as $$
 begin
- insert into public.audit_logs(actor_id,action,entity,record_id) values(auth.uid(),TG_OP,TG_TABLE_NAME,coalesce(new.id,old.id));
+ insert into public.parada_audit_logs(actor_id,action,entity,record_id) values(auth.uid(),TG_OP,TG_TABLE_NAME,coalesce(new.id,old.id));
  return coalesce(new,old);
 end; $$;
 do $$ declare t text; begin
@@ -123,7 +123,7 @@ do $$ declare t text; begin
  execute format('create trigger audit after insert or update or delete on public.%I for each row execute function public.audit_change()',t);
  end loop;
 end; $$;
-alter table public.audit_logs enable row level security;
+alter table public.parada_audit_logs enable row level security;
 create policy own_profile on public.profiles for select to authenticated using(id=auth.uid() or public.has_role(array['administrador','gerente']::public.app_role[]));
 create policy manage_profiles on public.profiles for all to authenticated using(public.has_role(array['administrador']::public.app_role[])) with check(public.has_role(array['administrador']::public.app_role[]));
 -- No automatic profile trigger: no self registration, no privilege escalation through user metadata.
@@ -143,11 +143,11 @@ do $$ declare t text; begin
  execute format('create policy finance_read on public.%I for select to authenticated using(public.has_role(array[''administrador'',''gerente'',''atendente'']::public.app_role[]))',t);
  end loop;
 end; $$;
-create policy audit_read on public.audit_logs for select to authenticated using(public.has_role(array['administrador','gerente']::public.app_role[]));
+create policy audit_read on public.parada_audit_logs for select to authenticated using(public.has_role(array['administrador','gerente']::public.app_role[]));
 -- RPC only writes for monetary and order state operations. Immutable history.
-revoke all on all tables in schema public from anon, authenticated;
-revoke all on all sequences in schema public from anon, authenticated;
-grant select on all tables in schema public to authenticated;
+revoke all on public.profiles,public.customers,public.vehicles,public.service_categories,public.services,public.employees,public.work_orders,public.work_order_items,public.appointments,public.cash_registers,public.payments,public.cash_movements,public.business_settings,public.parada_audit_logs from anon, authenticated;
+revoke all on sequence public.work_orders_number_seq from anon, authenticated;
+grant select on public.profiles,public.customers,public.vehicles,public.service_categories,public.services,public.employees,public.work_orders,public.work_order_items,public.appointments,public.cash_registers,public.payments,public.cash_movements,public.business_settings,public.parada_audit_logs to authenticated;
 grant insert,update on public.profiles,public.customers,public.vehicles,public.services,public.service_categories,public.employees,public.appointments,public.business_settings to authenticated;
-revoke insert,update,delete on public.work_orders,public.work_order_items,public.payments,public.cash_registers,public.cash_movements,public.audit_logs from authenticated;
+revoke insert,update,delete on public.work_orders,public.work_order_items,public.payments,public.cash_registers,public.cash_movements,public.parada_audit_logs from authenticated;
 commit;

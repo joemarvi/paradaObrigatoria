@@ -138,7 +138,7 @@ export interface Database {
   cash_movements: CashMovement[];
   business_settings: Settings[];
   profiles: Profile[];
-  audit_logs: AuditLog[];
+  parada_audit_logs: AuditLog[];
 }
 export type Table = keyof Database;
 export const EMPTY_DATABASE: Database = {
@@ -155,7 +155,7 @@ export const EMPTY_DATABASE: Database = {
   cash_movements: [],
   business_settings: [],
   profiles: [],
-  audit_logs: [],
+  parada_audit_logs: [],
 };
 export const STATUS_LABELS: Partial<Record<string, string>> = {
   AGUARDANDO: 'Aguardando',

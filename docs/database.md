@@ -17,7 +17,7 @@ Aplique os arquivos SQL em ordem num projeto Supabase novo. Não execute repetid
 | cash_registers     | Sessões de caixa e conferência                         |
 | cash_movements     | Entradas, saídas, vendas e conferência                 |
 | business_settings  | Configuração única da empresa                          |
-| audit_logs         | Usuário, ação, entidade, UUID e horário                |
+| parada_audit_logs  | Usuário, ação, entidade, UUID e horário                |
 
 UUIDs, timestamps, índices, foreign keys, constraints, enum de papéis/status/pagamento e atualização automática de `updated_at`. Número de OS sequencial não garante ausência de lacunas após rollback.
 
@@ -58,3 +58,11 @@ A agenda valida vínculo do veículo, serviços ativos e capacidade em qualquer 
 ## Homologação obrigatória
 
 Os testes PGlite comprovam sintaxe SQL e parte do comportamento real de PostgreSQL/RLS. No Supabase real, conferir: revogação de sessão e de perfil ativo, Auth redirects e SMTP, chamadas PostgREST/RPC por perfil, requests simultâneos de pagamento/fechamento, capacidade de agenda e configuração de backup. Não foi aplicada nenhuma migration externa nesta entrega.
+
+## Recuperação da execução interrompida
+
+Se `001_schema` falhou porque `audit_logs` já existe e as migrations `003_reporting` e `006_finance_summary` foram executadas mesmo assim, aplique os seis arquivos corrigidos em ordem, de `001` a `006`, no SQL Editor. A transação de `001` foi revertida; por isso faltam `app_role` e `customers` nas migrations seguintes. Se a sessão informar que a transação está abortada, execute `ROLLBACK` antes de continuar.
+
+A auditoria da aplicação agora usa `public.parada_audit_logs`. A tabela `public.audit_logs` existente, seus dados e permissões são preservados. As permissões de `001` se limitam às tabelas e à sequência da aplicação. `003` e `006` substituem as funções já criadas, sem exigir exclusão. As migrations dependentes verificam os pré-requisitos antes de criar objetos.
+
+Este procedimento atende à falha relatada de `001`; não reaplique `001` se ela já foi concluída com sucesso. Em bancos já migrados, use uma nova migration de atualização.

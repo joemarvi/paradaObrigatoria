@@ -1,5 +1,14 @@
 begin;
-create function public.management_report(start_date date,end_date date) returns jsonb language plpgsql stable security definer set search_path='' as $$
+do $$
+begin
+ if to_regtype('public.app_role') is null or to_regclass('public.customers') is null then
+  raise exception 'Pré-requisito ausente: execute 202610060001_schema.sql com sucesso antes desta migration.';
+ end if;
+ if to_regprocedure('public.require_role(public.app_role[])') is null then
+  raise exception 'Pré-requisito ausente: execute 202610060002_operations.sql com sucesso antes desta migration.';
+ end if;
+end; $$;
+create or replace function public.management_report(start_date date,end_date date) returns jsonb language plpgsql stable security definer set search_path='' as $$
 declare start_at timestamptz; end_at timestamptz; result jsonb;
 begin
  perform public.require_role(array['administrador','gerente']::public.app_role[]);
@@ -19,7 +28,7 @@ begin
  'cash',coalesce((select jsonb_agg(c) from (select type as name,count(*) as quantity,sum(amount) as total from public.cash_movements where created_at>=start_at and created_at<end_at group by type order by type) c),'[]'::jsonb)
  ) into result; return result;
 end; $$;
-create function public.dashboard_summary() returns jsonb language plpgsql stable security definer set search_path='' as $$
+create or replace function public.dashboard_summary() returns jsonb language plpgsql stable security definer set search_path='' as $$
 declare today date:=(now() at time zone 'America/Sao_Paulo')::date; start_at timestamptz; end_at timestamptz; rid uuid;
 begin
  perform public.require_role(array['administrador','gerente','atendente']::public.app_role[]);

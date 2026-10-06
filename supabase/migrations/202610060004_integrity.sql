@@ -1,4 +1,13 @@
 begin;
+do $$
+begin
+ if to_regtype('public.app_role') is null or to_regclass('public.customers') is null then
+  raise exception 'Pré-requisito ausente: execute 202610060001_schema.sql com sucesso antes desta migration.';
+ end if;
+ if to_regprocedure('public.require_role(public.app_role[])') is null then
+  raise exception 'Pré-requisito ausente: execute 202610060002_operations.sql com sucesso antes desta migration.';
+ end if;
+end; $$;
 create function public.valid_document(document text) returns boolean language plpgsql immutable set search_path='' as $$
 declare n integer; i integer; s integer; digit integer; weight integer;
 begin

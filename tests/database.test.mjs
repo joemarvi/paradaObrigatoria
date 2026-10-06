@@ -16,10 +16,13 @@ async function asUser(id, role = 'authenticated') {
   await db.query("select set_config('request.jwt.claim.sub',$1,false)", [id ?? '']);
   await db.exec(`set role ${role}`);
 }
-before(async () => {
-  await db.exec(
+async function bootstrap(target) {
+  await target.exec(
     `create role anon;create role authenticated;create schema auth;create table auth.users(id uuid primary key);create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth,public to anon,authenticated;grant execute on function auth.uid() to anon,authenticated;alter default privileges in schema public grant all on tables to anon,authenticated;alter default privileges in schema public grant all on sequences to anon,authenticated;alter default privileges in schema public grant all on functions to anon,authenticated;`,
   );
+}
+before(async () => {
+  await bootstrap(db);
   for (const file of readdirSync('supabase/migrations').sort()) {
     // PGlite has gen_random_uuid built in, but not the optional pgcrypto extension.
     const sql = readFileSync('supabase/migrations/' + file, 'utf8').replace(
@@ -204,13 +207,13 @@ test('relatórios agregam pagamentos e somente gerência acessa auditoria', asyn
     db.query("select public.management_report('2026-10-01','2026-10-31')"),
     /Acesso não permitido/,
   );
-  assert.equal((await db.query('select * from public.audit_logs')).rows.length, 0);
+  assert.equal((await db.query('select * from public.parada_audit_logs')).rows.length, 0);
   await asUser(ids.admin);
   const r = (await db.query("select public.management_report('2026-01-01','2026-12-31') as data"))
     .rows[0].data;
   assert.equal(Number(r.revenue), 80);
   assert.equal(r.completed, 1);
-  assert.ok((await db.query('select * from public.audit_logs')).rows.length > 5);
+  assert.ok((await db.query('select * from public.parada_audit_logs')).rows.length > 5);
 });
 test('CPF/CNPJ inválido e placa inválida são rejeitados pelo banco', async () => {
   await asUser(ids.attendant);
@@ -347,4 +350,102 @@ test('totais financeiros e pagamentos parciais independem de paginação', async
   assert.equal(summary.pendingAmount, 70);
   assert.equal(summary.pendingCount, 1);
   assert.equal(summary.paidByOrder[oid], 30);
+});
+
+function migrationSql(file) {
+  return readFileSync('supabase/migrations/' + file, 'utf8').replace(
+    'create extension if not exists pgcrypto;',
+    '',
+  );
+}
+test('migrations dependentes falham cedo quando o schema está ausente', async () => {
+  const target = new PGlite();
+  try {
+    await bootstrap(target);
+    for (const file of readdirSync('supabase/migrations').sort().slice(1)) {
+      await assert.rejects(target.exec(migrationSql(file)), /Pré-requisito ausente.*001_schema/);
+      await target.exec('rollback');
+    }
+    assert.equal(
+      (await target.query("select to_regprocedure('public.finance_summary()') as fn")).rows[0].fn,
+      null,
+    );
+  } finally {
+    await target.close();
+  }
+});
+test('recupera colisão de audit_logs e funções previamente criadas sem alterar dados ou permissões existentes', async () => {
+  const target = new PGlite();
+  try {
+    await bootstrap(target);
+    await target.exec(`create table public.audit_logs(id bigint generated always as identity, payload text);
+      insert into public.audit_logs(payload) values ('histórico existente');
+      revoke all on public.audit_logs from authenticated;
+      grant select on public.audit_logs to anon;`);
+    const legacy = (
+      await target.query(
+        "select relacl::text as acl from pg_class where oid='public.audit_logs'::regclass",
+      )
+    ).rows[0].acl;
+    const files = readdirSync('supabase/migrations').sort();
+    // Reproduce the original collision and its transaction rollback.
+    await assert.rejects(
+      target.exec(migrationSql(files[0]).replaceAll('parada_audit_logs', 'audit_logs')),
+      /relation "audit_logs" already exists/,
+    );
+    await target.exec('rollback');
+    assert.equal(
+      (
+        await target.query(
+          "select to_regtype('public.app_role') as role, to_regclass('public.customers') as customers",
+        )
+      ).rows[0].role,
+      null,
+    );
+    assert.equal(
+      (await target.query("select to_regclass('public.customers') as customers")).rows[0].customers,
+      null,
+    );
+    // These signatures were left behind by the successful 003 and 006 runs.
+    await target.exec(`create function public.management_report(start_date date,end_date date) returns jsonb language plpgsql as $$begin return '{}'::jsonb; end$$;
+      create function public.dashboard_summary() returns jsonb language plpgsql as $$begin return '{}'::jsonb; end$$;
+      create function public.finance_summary() returns jsonb language plpgsql as $$begin return '{}'::jsonb; end$$;`);
+    for (const file of files) await target.exec(migrationSql(file));
+    assert.equal(
+      (await target.query('select payload from public.audit_logs')).rows[0].payload,
+      'histórico existente',
+    );
+    assert.equal(
+      (
+        await target.query(
+          "select relacl::text as acl from pg_class where oid='public.audit_logs'::regclass",
+        )
+      ).rows[0].acl,
+      legacy,
+    );
+    assert.equal(
+      (
+        await target.query(
+          "select has_sequence_privilege('anon','public.audit_logs_id_seq','USAGE') as allowed",
+        )
+      ).rows[0].allowed,
+      true,
+    );
+    await target.exec(
+      `insert into auth.users values ('${ids.admin}'); insert into public.profiles(id,name,role) values ('${ids.admin}','Administrador','administrador');`,
+    );
+    await target.query("select set_config('request.jwt.claim.sub',$1,false)", [ids.admin]);
+    await target.exec('set role authenticated');
+    const result = (
+      await target.query(
+        'select public.management_report(current_date,current_date) as report, public.dashboard_summary() as dashboard, public.finance_summary() as finance',
+      )
+    ).rows[0];
+    assert.equal(result.finance.balance, 0);
+    assert.ok(Object.keys(result.report).length > 0);
+    assert.ok(Object.keys(result.dashboard).length > 0);
+    assert.ok((await target.query('select * from public.parada_audit_logs')).rows.length > 0);
+  } finally {
+    await target.close();
+  }
 });

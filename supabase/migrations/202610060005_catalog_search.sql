@@ -1,4 +1,13 @@
 begin;
+do $$
+begin
+ if to_regtype('public.app_role') is null or to_regclass('public.customers') is null then
+  raise exception 'Pré-requisito ausente: execute 202610060001_schema.sql com sucesso antes desta migration.';
+ end if;
+ if to_regprocedure('public.require_role(public.app_role[])') is null then
+  raise exception 'Pré-requisito ausente: execute 202610060002_operations.sql com sucesso antes desta migration.';
+ end if;
+end; $$;
 create function public.search_catalog(table_name text,term text default '',active_filter text default 'all',page_number integer default 1) returns jsonb language plpgsql stable security invoker set search_path='' as $$
 declare source text; search_expression text; status_expression text; condition text; rows jsonb; total bigint;
 begin

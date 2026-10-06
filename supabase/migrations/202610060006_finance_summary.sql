@@ -1,5 +1,14 @@
 begin;
-create function public.finance_summary() returns jsonb language plpgsql stable security definer set search_path='' as $$
+do $$
+begin
+ if to_regtype('public.app_role') is null or to_regclass('public.customers') is null then
+  raise exception 'Pré-requisito ausente: execute 202610060001_schema.sql com sucesso antes desta migration.';
+ end if;
+ if to_regprocedure('public.require_role(public.app_role[])') is null then
+  raise exception 'Pré-requisito ausente: execute 202610060002_operations.sql com sucesso antes desta migration.';
+ end if;
+end; $$;
+create or replace function public.finance_summary() returns jsonb language plpgsql stable security definer set search_path='' as $$
 declare rid uuid; today date:=(now() at time zone 'America/Sao_Paulo')::date; start_at timestamptz; end_at timestamptz;
 begin
  perform public.require_role(array['administrador','gerente','atendente']::public.app_role[]);

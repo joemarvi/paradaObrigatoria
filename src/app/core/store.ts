@@ -69,7 +69,7 @@ export class Store {
       const manager = ['administrador', 'gerente'].includes(this.auth.role());
       const tables = (only ?? (Object.keys(next) as Table[]))
         .filter((t) => finance || !['payments', 'cash_movements', 'cash_registers'].includes(t))
-        .filter((t) => manager || !['audit_logs', 'profiles'].includes(t));
+        .filter((t) => manager || !['parada_audit_logs', 'profiles'].includes(t));
       await Promise.all(
         tables.map(async (table) => {
           const { data, error } = await this.query(table).range(0, 199);
@@ -168,7 +168,7 @@ export class Store {
         if (error) throw error;
       },
       'Registro salvo.',
-      [table, 'audit_logs'],
+      [table, 'parada_audit_logs'],
     );
   }
   async rpc(name: string, args: Row): Promise<boolean> {
@@ -182,12 +182,12 @@ export class Store {
       },
       'Operação concluída.',
       name === 'create_work_order'
-        ? ['work_orders', 'work_order_items', 'audit_logs']
+        ? ['work_orders', 'work_order_items', 'parada_audit_logs']
         : name.includes('order') || name === 'release_vehicle'
-          ? ['work_orders', 'audit_logs']
+          ? ['work_orders', 'parada_audit_logs']
           : name === 'record_payment'
-            ? ['work_orders', 'payments', 'cash_movements', 'audit_logs']
-            : ['cash_registers', 'cash_movements', 'audit_logs'],
+            ? ['work_orders', 'payments', 'cash_movements', 'parada_audit_logs']
+            : ['cash_registers', 'cash_movements', 'parada_audit_logs'],
     );
   }
   private async mutate(
@@ -213,7 +213,7 @@ export class Store {
     }
   }
   private audit(entity: string, id: string, action: string) {
-    this.demoData!.audit_logs.unshift({
+    this.demoData!.parada_audit_logs.unshift({
       id: crypto.randomUUID(),
       record_id: id,
       entity,
