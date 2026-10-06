@@ -1620,7 +1620,11 @@ td small {
   display: grid;
   place-items: center;
   padding: 20px;
-  background: radial-gradient(ellipse at top, #d9ecf6, #f3f7fb 65%);
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse at 15% 20%, #12394b 0%, transparent 55%),
+    linear-gradient(135deg, #08131a, #0a202d);
 }
 .customer-signup-card {
   width: 100%;
@@ -1774,7 +1778,8 @@ td small {
     radial-gradient(ellipse at 15% 20%, #12394b 0%, transparent 55%),
     linear-gradient(135deg, #08131a, #0a202d);
 }
-.customer-login-page::before {
+.customer-login-page::before,
+.customer-signup-page::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -1873,7 +1878,8 @@ td small {
   .customer-login-card {
     padding: 24px;
   }
-  .customer-login-page::before {
+  .customer-login-page::before,
+  .customer-signup-page::before {
     background-position: center;
     background-size: 130vw auto;
   }
