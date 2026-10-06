@@ -10,7 +10,28 @@ test('home pública apresenta serviços, preços e contatos sem consultar dados 
     await route.abort();
   });
   await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Bem cuidado.');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Bem Cuidado.');
+  const careCards = page.locator('.home-care-card');
+  await expect(careCards).toHaveCount(4);
+  for (const title of [
+    'Lavagem Completa',
+    'Aspiração Interna',
+    'Polimento e Cera',
+    'Limpeza de Rodas e Pneus',
+  ]) {
+    await expect(careCards.getByRole('heading', { name: title, exact: true })).toBeVisible();
+  }
+  for (const photo of await careCards.locator('img').all()) {
+    await photo.scrollIntoViewIfNeeded();
+    await expect
+      .poll(() =>
+        photo.evaluate(
+          (img) => (img as HTMLImageElement).complete && (img as HTMLImageElement).naturalWidth > 0,
+        ),
+      )
+      .toBe(true);
+  }
+
   await page.evaluate(() => document.fonts.ready);
   const typography = await page.evaluate(() => ({
     family: getComputedStyle(document.body).fontFamily,
@@ -21,7 +42,7 @@ test('home pública apresenta serviços, preços e contatos sem consultar dados 
   expect(typography.family).toContain('IBM Plex Sans');
   expect(typography.loaded).toBe(true);
 
-  for (const name of ['Lavagem americana simples', 'Lavagem SUV', 'Caminhonete', 'Moto']) {
+  for (const name of ['Lavagem Americana Simples', 'Lavagem SUV', 'Caminhonete', 'Moto']) {
     await expect(page.getByRole('heading', { name, exact: true })).toBeVisible();
   }
   for (const price of ['60,00', '70,00', '80,00', '35,00']) {

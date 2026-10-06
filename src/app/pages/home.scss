@@ -132,25 +132,95 @@
   letter-spacing: 2px;
   margin-top: 24px;
 }
-.home-care-strip {
-  background: #111f28;
-  border-block: 1px solid #ffffff12;
+.home-care-gallery {
+  padding-block: 64px 16px;
 }
-.home-care-strip > div {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 22px;
-  padding-block: 25px;
+.home-care-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
 }
-.home-care-strip span {
-  display: flex;
-  gap: 10px;
-  align-items: center;
+.home-care-card {
+  overflow: hidden;
+  border-radius: 18px;
+  background: #11212b;
+  border: 1px solid #ffffff18;
+  transition:
+    border-color 0.2s,
+    transform 0.2s;
+}
+.home-care-card:hover {
+  border-color: #f9d32980;
+  transform: translateY(-4px);
+}
+.home-care-photo {
+  overflow: hidden;
+  aspect-ratio: 3 / 2;
+  background: #183342;
+}
+.home-care-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s;
+}
+.home-care-card:hover img {
+  transform: scale(1.04);
+}
+.home-care-copy {
+  padding: 22px;
+}
+.home-care-copy h3 {
+  font-size: 20px;
+  line-height: 1.35;
+  min-height: 54px;
+  font-weight: 600;
+}
+.home-care-copy p {
   font-size: 13px;
+  line-height: 1.75;
+  color: #adbdc8;
+  margin: 12px 0 20px;
+  min-height: 69px;
 }
-.home-care-strip app-icon {
+.home-care-copy a {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
   color: var(--home-yellow);
+  font-size: 12px;
+  font-weight: 600;
+  border-top: 1px solid #ffffff18;
+  padding-top: 16px;
+}
+@media (max-width: 1000px) {
+  .home-care-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 540px) {
+  .home-care-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .home-care-gallery {
+    padding-block: 40px 0;
+  }
+  .home-care-copy h3,
+  .home-care-copy p {
+    min-height: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-care-card,
+  .home-care-photo img {
+    transition: none;
+  }
+  .home-care-card:hover,
+  .home-care-card:hover img {
+    transform: none;
+  }
 }
 .home-services {
   padding-block: 80px;
@@ -370,10 +440,6 @@
     max-width: 340px;
     width: 100%;
     margin-inline: auto;
-  }
-  .home-care-strip > div {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
   }
   .home-services {
     padding-block: 50px;

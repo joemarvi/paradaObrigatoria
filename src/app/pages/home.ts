@@ -25,7 +25,7 @@ import { Icon } from '../shared/ui';
     <section class="home-hero home-container">
       <div class="home-hero-copy">
         <span class="home-eyebrow">SEU CARRO MERECE ESSA PARADA</span>
-        <h1>Limpo.<br /><em>Brilhando.</em><br />Bem cuidado.</h1>
+        <h1>Limpo.<br /><em>Brilhando.</em><br />Bem Cuidado.</h1>
         <p>
           Da lavagem completa ao cuidado com rodas e pneus, dê ao seu veículo a atenção que ele
           merece.
@@ -58,10 +58,38 @@ import { Icon } from '../shared/ui';
         </div>
       </div>
     </section>
-    <section class="home-care-strip" aria-label="Cuidados disponíveis">
-      <div class="home-container">
-        @for (care of careServices; track care) {
-          <span><app-icon name="check" />{{ care }}</span>
+    <section class="home-care-gallery home-container" aria-labelledby="home-care-title">
+      <div class="home-section-heading">
+        <div>
+          <span class="home-eyebrow">CUIDADO EM CADA DETALHE</span>
+          <h2 id="home-care-title">Mais Cuidado.<br />Mais Brilho.</h2>
+        </div>
+        <p>
+          Conheça os cuidados que fazem parte da nossa parada. Do interior à pintura, atenção aos
+          detalhes do seu veículo.
+        </p>
+      </div>
+      <div class="home-care-grid">
+        @for (care of careServices; track care.image) {
+          <article class="home-care-card">
+            <div class="home-care-photo">
+              <img
+                [src]="care.image"
+                [alt]="care.alt"
+                width="1536"
+                height="1024"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+            <div class="home-care-copy">
+              <h3>{{ care.name }}</h3>
+              <p>{{ care.description }}</p>
+              <a href="https://wa.me/5561991379913" target="_blank" rel="noopener noreferrer"
+                >Consultar Serviço <app-icon name="arrow"
+              /></a>
+            </div>
+          </article>
         }
       </div>
     </section>
@@ -69,7 +97,7 @@ import { Icon } from '../shared/ui';
       <div class="home-section-heading">
         <div>
           <span class="home-eyebrow">ESCOLHA O CUIDADO IDEAL</span>
-          <h2>Uma parada para<br />cada veículo.</h2>
+          <h2>Uma Parada para<br />Cada Veículo.</h2>
         </div>
         <p>
           Confira os serviços e os valores iniciais da nossa tabela. Escolha seu próximo cuidado e
@@ -98,7 +126,7 @@ import { Icon } from '../shared/ui';
     <section class="home-how home-container">
       <div>
         <span class="home-eyebrow">FÁCIL DE AGENDAR</span>
-        <h2>Seu próximo cuidado<br />começa aqui.</h2>
+        <h2>Seu Próximo Cuidado<br />Começa Aqui.</h2>
       </div>
       <ol>
         <li>
@@ -111,14 +139,14 @@ import { Icon } from '../shared/ui';
         <li>
           <span>02</span>
           <div>
-            <h3>Escolha o atendimento</h3>
+            <h3>Escolha o Atendimento</h3>
             <p>Adicione seu veículo e selecione serviço, data e horário.</p>
           </div>
         </li>
         <li>
           <span>03</span>
           <div>
-            <h3>Acompanhe sua reserva</h3>
+            <h3>Acompanhe sua Reserva</h3>
             <p>Consulte seus agendamentos na sua área exclusiva.</p>
           </div>
         </li>
@@ -138,7 +166,7 @@ import { Icon } from '../shared/ui';
         /></a>
       </div>
       <div class="home-contact-card">
-        <h3>Fale com a nossa equipe</h3>
+        <h3>Fale com a Nossa Equipe</h3>
         <p>Tire suas dúvidas e consulte os cuidados para seu veículo.</p>
         <a href="https://wa.me/5561991379913" target="_blank" rel="noopener noreferrer"
           >(61) 99137-9913 <app-icon name="arrow" /></a
@@ -157,14 +185,34 @@ import { Icon } from '../shared/ui';
 })
 export class Home {
   readonly careServices = [
-    'Lavagem completa',
-    'Aspiração interna',
-    'Polimento e cera',
-    'Limpeza de rodas e pneus',
+    {
+      name: 'Lavagem Completa',
+      image: 'services/lavagem-completa.png',
+      alt: 'Lavagem de carro com espuma e jato de água',
+      description: 'Cuidado com a limpeza do seu veículo, do primeiro enxágue ao acabamento.',
+    },
+    {
+      name: 'Aspiração Interna',
+      image: 'services/aspiracao-interna.png',
+      alt: 'Aspiração dos bancos e tapetes no interior de um carro',
+      description: 'Atenção ao interior, com limpeza de bancos, tapetes e cantos.',
+    },
+    {
+      name: 'Polimento e Cera',
+      image: 'services/polimento-cera.png',
+      alt: 'Polimento da pintura de um carro com máquina orbital',
+      description: 'Um cuidado especial para valorizar o brilho e o acabamento da pintura.',
+    },
+    {
+      name: 'Limpeza de Rodas e Pneus',
+      image: 'services/rodas-pneus.png',
+      alt: 'Limpeza de roda e pneu com espuma e escova',
+      description: 'Limpeza dos detalhes que completam a apresentação do seu veículo.',
+    },
   ];
   readonly services = [
     {
-      name: 'Lavagem americana simples',
+      name: 'Lavagem Americana Simples',
       kind: 'HATCH / SEDAN',
       description: 'Lavagem para carros hatch e sedan.',
       price: 60,
