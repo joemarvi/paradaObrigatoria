@@ -11,6 +11,16 @@ test('home pública apresenta serviços, preços e contatos sem consultar dados 
   });
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Bem cuidado.');
+  await page.evaluate(() => document.fonts.ready);
+  const typography = await page.evaluate(() => ({
+    family: getComputedStyle(document.body).fontFamily,
+    loaded: [400, 500, 600, 700].every((weight) =>
+      document.fonts.check(`${weight} 16px "IBM Plex Sans"`, 'Agendar'),
+    ),
+  }));
+  expect(typography.family).toContain('IBM Plex Sans');
+  expect(typography.loaded).toBe(true);
+
   for (const name of ['Lavagem americana simples', 'Lavagem SUV', 'Caminhonete', 'Moto']) {
     await expect(page.getByRole('heading', { name, exact: true })).toBeVisible();
   }

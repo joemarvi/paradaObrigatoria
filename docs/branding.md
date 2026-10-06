@@ -24,3 +24,7 @@ As cores da marca são aproximações visuais da referência, centralizadas em `
 > Use case: background-extraction. Edit target: the user-attached round LAVA JATO PARADA OBRIGATÓRIA logo. Asset type: exact existing business logo for a web application, NOT a redesign. Remove ONLY the grey rectangular area outside the circular blue emblem. Preserve the original circular aqua water and bubble border, blue watery background, white car and foam, sweeping red oval, typography, colors and composition unchanged as faithfully as possible. Preserve exact words LAVA JATO, PARADA OBRIGATÓRIA, and exact telephone (61) 99137-9913. Center the complete circular logo on a transparent square canvas, with minimal transparent padding, no clipping, no added elements, no new lettering. High fidelity to the supplied image.
 
 Foi usado o modo integrado, com a imagem anexada como referência e fundo transparente; nenhuma API paga adicional foi configurada no projeto.
+
+## Tipografia
+
+IBM Plex Sans é a fonte principal do site público, formulários e painel administrativo, com fallback sans-serif e pesos de 400 a 700. Os arquivos WOFF2 para Latin e Latin Extended ficam em `public/fonts`, com licença OFL preservada; são servidos localmente com `font-display: swap`. Fonte: [Google Fonts — IBM Plex Sans](https://github.com/google/fonts/tree/main/ofl/ibmplexsans). O peso 400 é usado em texto, 500 em rótulos, 600 em subtítulos/botões e 700 em títulos/destaques. Elementos como placas mantêm a fonte monoespaçada para facilitar a leitura.

@@ -55,7 +55,7 @@
   background: var(--home-yellow);
   color: #08131a;
   font-size: 13px;
-  font-weight: 750;
+  font-weight: 700;
   transition: transform 0.2s;
 }
 .home-button:hover {
@@ -82,7 +82,7 @@
 .home-hero h1 {
   margin: 20px 0 24px;
   font-size: clamp(48px, 6.3vw, 82px);
-  font-weight: 850;
+  font-weight: 700;
   line-height: 1.02;
   letter-spacing: -3px;
 }
@@ -267,7 +267,7 @@
 .home-how li > span {
   color: var(--home-yellow);
   font-size: 20px;
-  font-weight: 750;
+  font-weight: 700;
 }
 .home-how h3 {
   font-size: 16px;
