@@ -8,7 +8,7 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/customer-portal').then((m) => m.CustomerPortal),
   },
   { path: 'login', loadComponent: () => import('./pages/login').then((m) => m.Login) },
-  { path: '', pathMatch: 'full', redirectTo: 'cliente' },
+  { path: '', pathMatch: 'full', loadComponent: () => import('./pages/home').then((m) => m.Home) },
   {
     path: '',
     canActivate: [authGuard],

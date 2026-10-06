@@ -58,9 +58,15 @@ values ('UUID_DO_USUARIO_AUTH', 'Administrador', 'administrador', true);
 
 Detalhes: [banco e permissões](docs/database.md), [arquitetura](docs/architecture.md), [validação e pendências](docs/validation.md).
 
+## Home pública
+
+A home informa lavagem americana simples (hatch/sedan) a partir de R$ 60, SUV com cera líquida Vonixx a partir de R$ 70, caminhonete com cera líquida Vonixx a partir de R$ 80 e moto com cera líquida Vonixx a partir de R$ 35. Divulga também aspiração interna, polimento e cera e limpeza de rodas/pneus, sem inventar preços para esses cuidados. Contatos: (61) 99137-9913 e (61) 99170-5891; Condomínio Mestre D’Armas, em frente ao Posto Tiquira. O link de mapa pesquisa a região; não presume coordenadas do estabelecimento.
+
+A tabela pública reproduz as imagens em `src/app/pages/home.ts`. Serviços e valores disponíveis para reserva continuam sendo os do catálogo configurado pela equipe; mantenha ambos alinhados. A home não consulta nem expõe tabelas internas, não exige login e mantém o acesso de equipe em `/login`, protegido pelo perfil e RLS.
+
 ## Portal do cliente
 
-A página inicial direciona para `/cliente`. O cliente cria uma conta com nome, telefone, e-mail e senha; confirma o e-mail; entra e conclui seus dados, se necessário. Depois cadastra um veículo, seleciona serviço e horário e acompanha ou cancela suas próprias reservas futuras. A equipe continua entrando por `/login` e visualiza as reservas em `/agendamentos`.
+A página inicial `/` é pública e apresenta serviços, preços iniciais, contatos e localização das imagens fornecidas. O botão de agendamento abre `/cliente`. O cliente cria uma conta com nome, telefone, e-mail e senha; confirma o e-mail; entra e conclui seus dados, se necessário. Depois cadastra um veículo, seleciona serviço e horário e acompanha ou cancela suas próprias reservas futuras. A equipe continua entrando por `/login` e visualiza as reservas em `/agendamentos`.
 
 **Projeto já configurado com as migrations 001 a 006:** aplique somente `supabase/migrations/202610060007_customer_portal.sql`. No painel Supabase, habilite cadastro por e-mail e autorize o redirecionamento para `/cliente`. A alteração de `supabase/config.toml` configura o ambiente local; não altera automaticamente o projeto hospedado.
 

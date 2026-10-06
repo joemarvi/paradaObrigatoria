@@ -89,7 +89,7 @@ test('cliente confirma cadastro, entra, cadastra veículo, agenda e cancela', as
       body: JSON.stringify(result),
     });
   });
-  await page.goto('/');
+  await page.goto('/cliente');
   await expect(page).toHaveURL(/cliente/);
   await expect(page.getByRole('heading', { name: 'Crie sua conta' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Agendar atendimento' })).toHaveCount(0);

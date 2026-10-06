@@ -12,7 +12,7 @@ import { friendlyError } from '../core/notifications';
   imports: [ReactiveFormsModule, RouterLink, CurrencyPipe, DatePipe],
   template: `<main class="customer-portal">
     <header class="portal-header">
-      <a routerLink="/cliente" class="brand"
+      <a routerLink="/" class="brand"
         ><img
           class="brand-logo"
           src="brand-logo.png"

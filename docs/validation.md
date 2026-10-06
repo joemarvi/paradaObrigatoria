@@ -39,3 +39,7 @@ Não foram homologados login e persistência de sessão no Supabase hospedado, e
 PGlite executa PostgreSQL e RLS, mas não simula o serviço completo de Supabase Auth. Os testes de navegador usam demonstração para a equipe e respostas simuladas de Supabase para o portal. A extensão pgcrypto não é instalada no teste embarcado; a função UUID é nativa nesse ambiente.
 
 A auditoria de dependências é um retrato da data e deve ser repetida antes do deploy. Free tiers devem ser conferidos nos fornecedores; nenhum serviço pago ou deploy externo foi contratado/executado.
+
+## Home pública
+
+A home em `/` foi validada com os quatro serviços e preços das imagens, ambos os links de WhatsApp, localização e acesso ao cadastro do cliente. O teste confirma que a home não consulta Supabase nem dados internos, e que um visitante anônimo continua sendo redirecionado ao login ao tentar acessar `/caixa`. Foram verificadas larguras de 1440, 834, 390 e 320 pixels sem rolagem horizontal. `npm run test:portal` cobre agora o fluxo do cliente e a home pública. Lint e build passaram.
