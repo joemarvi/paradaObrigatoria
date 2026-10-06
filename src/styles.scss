@@ -1084,15 +1084,6 @@ td small {
   position: relative;
   isolation: isolate;
 }
-.login-form-panel::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: url('/brand-logo.png') center / min(90%, 600px) auto no-repeat;
-  opacity: 0.045;
-  z-index: -1;
-  pointer-events: none;
-}
 .login-form {
   width: 100%;
   max-width: 365px;
