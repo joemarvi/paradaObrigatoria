@@ -11,7 +11,7 @@ import { friendlyError } from '../core/notifications';
         ><img src="brand-logo.png" width="72" height="72" alt="Parada Obrigatória"
       /></a>
       <span class="eyebrow">SEU VEÍCULO EM BOAS MÃOS</span>
-      <h1>Entre para agendar</h1>
+      <h1>Entre para Agendar</h1>
       <p>Acesse seus veículos e agendamentos.</p>
       <form [formGroup]="form" (ngSubmit)="submit()">
         <label>E-mail<input type="email" formControlName="email" autocomplete="username" /></label

@@ -48,7 +48,7 @@ test('home pública apresenta serviços, preços e contatos sem consultar dados 
   await expect(page.getByText('Acesso da equipe')).toHaveCount(0);
   await page.getByRole('link', { name: 'Agendar meu atendimento' }).click();
   await expect(page).toHaveURL(/cliente/);
-  await expect(page.getByRole('heading', { name: 'Entre para agendar' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Entre para Agendar' })).toBeVisible();
   await page.goto('/admin/caixa');
   await expect(page).toHaveURL(/login/);
   await expect(page.getByRole('heading', { name: 'Entre na sua conta' })).toBeVisible();
@@ -59,7 +59,7 @@ test('login, cadastro e acesso administrativo têm formulários e navegação se
 }) => {
   await page.route('https://portal-test.supabase.co/**', (route) => route.abort());
   await page.goto('/cliente/entrar');
-  await expect(page.getByRole('heading', { name: 'Entre para agendar' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Entre para Agendar' })).toBeVisible();
   await expect(page.locator('nav, .portal-header')).toHaveCount(0);
   for (const [width, height] of [
     [1440, 900],

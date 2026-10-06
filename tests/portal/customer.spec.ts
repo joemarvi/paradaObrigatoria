@@ -131,5 +131,5 @@ test('cliente confirma cadastro, entra, cadastra veículo, agenda e cancela', as
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.getByRole('button', { name: 'Sair', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Entre para agendar' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Entre para Agendar' })).toBeVisible();
 });
