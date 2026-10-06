@@ -81,3 +81,35 @@ test('login, cadastro e acesso administrativo têm formulários e navegação se
   await expect(page.getByRole('heading', { name: 'Essa parada não existe.' })).toBeVisible();
   await expect(page.locator('a[href^="/admin"]')).toHaveCount(0);
 });
+
+test('cadastro compacto sem navbar ou rolagem e botões de acesso adjacentes', async ({ page }) => {
+  await page.route('https://portal-test.supabase.co/**', (route) => route.abort());
+  await page.goto('/');
+  await expect(page.locator('.home-nav nav')).toHaveCSS('text-transform', 'capitalize');
+  await expect(
+    page.locator('.home-nav-access').getByRole('link', { name: 'Entrar', exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.locator('.home-nav-access').getByRole('link', { name: 'Agendar', exact: true }),
+  ).toBeVisible();
+  await page.goto('/cliente/cadastro');
+  await expect(page.getByRole('heading', { name: 'Crie sua conta' })).toBeVisible();
+  await expect(page.locator('nav, .portal-header')).toHaveCount(0);
+  for (const [width, height] of [
+    [1440, 900],
+    [1366, 768],
+    [390, 844],
+    [375, 667],
+    [320, 568],
+  ]) {
+    await page.setViewportSize({ width, height });
+    const dimensions = await page.evaluate(() => ({
+      width: innerWidth,
+      height: innerHeight,
+      scrollWidth: document.documentElement.scrollWidth,
+      scrollHeight: document.documentElement.scrollHeight,
+    }));
+    expect(dimensions.scrollWidth, JSON.stringify(dimensions)).toBeLessThanOrEqual(width);
+    expect(dimensions.scrollHeight, JSON.stringify(dimensions)).toBeLessThanOrEqual(height);
+  }
+});

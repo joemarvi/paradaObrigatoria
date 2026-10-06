@@ -421,3 +421,44 @@
     gap: 14px 20px;
   }
 }
+
+.home-nav nav {
+  text-transform: capitalize;
+}
+.home-nav-access {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.home-login-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  border: 1px solid #ffffff38;
+  border-radius: 8px;
+  background: #ffffff08;
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+.home-login-button:hover {
+  background: #ffffff14;
+  border-color: var(--home-yellow);
+}
+@media (max-width: 720px) {
+  .home-nav-access {
+    margin-left: auto;
+  }
+  .home-login-button {
+    padding: 10px 16px;
+  }
+}
+@media (max-width: 420px) {
+  .home-nav-access {
+    margin-left: 0;
+  }
+}

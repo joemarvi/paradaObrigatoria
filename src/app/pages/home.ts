@@ -13,9 +13,13 @@ import { Icon } from '../shared/ui';
         ></a
       >
       <nav aria-label="Navegação do site">
-        <a href="#servicos">Serviços e preços</a><a routerLink="/cliente/entrar">Entrar</a
-        ><a routerLink="/cliente/cadastro">Criar conta</a><a href="#contato">Onde estamos</a
-        ><a routerLink="/cliente" class="home-button">Agendar</a>
+        <a href="#servicos">Serviços e preços</a><a href="#contato">Onde estamos</a>
+        <a routerLink="/cliente/cadastro">Criar conta</a>
+        <div class="home-nav-access">
+          <a routerLink="/cliente/entrar" class="home-login-button"
+            >Entrar <app-icon name="arrow" /></a
+          ><a routerLink="/cliente" class="home-button">Agendar</a>
+        </div>
       </nav>
     </header>
     <section class="home-hero home-container">

@@ -1614,3 +1614,151 @@ td small {
     font-size: 14px;
   }
 }
+
+.customer-signup-page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: radial-gradient(ellipse at top, #d9ecf6, #f3f7fb 65%);
+}
+.customer-signup-card {
+  width: 100%;
+  max-width: 540px;
+  padding: 28px 36px;
+  border: 1px solid #e3eaf0;
+  border-radius: 24px;
+  background: white;
+  box-shadow: 0 20px 70px #052d5310;
+}
+.customer-signup-brand {
+  display: block;
+  width: 64px;
+  margin: 0 auto 16px;
+}
+.customer-signup-brand img {
+  display: block;
+}
+.customer-signup-card > .eyebrow {
+  display: block;
+  text-align: center;
+  font-size: 9px;
+  letter-spacing: 1.4px;
+}
+.customer-signup-card h1 {
+  text-align: center;
+  font-size: 30px;
+  letter-spacing: -1px;
+  margin-top: 8px;
+}
+.customer-signup-card > p {
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 10px 0 22px;
+}
+.customer-signup-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.customer-signup-fields label {
+  margin: 0;
+  font-size: 12px;
+}
+.customer-signup-fields label:first-child,
+.customer-signup-fields label:nth-child(3),
+.customer-signup-fields label:nth-child(2) {
+  grid-column: 1 / -1;
+}
+.customer-signup-fields input {
+  min-width: 0;
+  width: 100%;
+  border-radius: 10px;
+  padding: 11px 12px;
+}
+.customer-signup-card .button {
+  border-radius: 10px;
+}
+.customer-signup-card .form-error {
+  margin-bottom: 12px;
+}
+.customer-signup-login {
+  text-align: center;
+  margin-top: 18px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.customer-signup-login a {
+  color: var(--primary);
+  font-weight: 700;
+  margin-left: 4px;
+}
+@media (max-width: 540px) {
+  .customer-signup-page {
+    padding: 16px;
+  }
+  .customer-signup-card {
+    padding: 24px;
+  }
+}
+@media (max-height: 700px) {
+  .customer-signup-page {
+    padding-block: 12px;
+  }
+  .customer-signup-card {
+    padding-block: 18px;
+  }
+  .customer-signup-brand {
+    width: 48px;
+    margin-bottom: 10px;
+  }
+  .customer-signup-brand img {
+    width: 48px;
+    height: 48px;
+  }
+  .customer-signup-card > p {
+    margin-bottom: 16px;
+  }
+  .customer-signup-fields {
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .customer-signup-login {
+    margin-top: 12px;
+  }
+}
+@media (max-height: 600px) {
+  .customer-signup-card {
+    padding: 16px 20px;
+  }
+  .customer-signup-card > .eyebrow {
+    display: none;
+  }
+  .customer-signup-brand {
+    width: 40px;
+    margin-bottom: 8px;
+  }
+  .customer-signup-brand img {
+    width: 40px;
+    height: 40px;
+  }
+  .customer-signup-card h1 {
+    font-size: 26px;
+    line-height: 1.2;
+  }
+  .customer-signup-card > p {
+    font-size: 12px;
+    margin: 8px 0 12px;
+  }
+  .customer-signup-fields label {
+    gap: 4px;
+    font-size: 11px;
+  }
+  .customer-signup-fields input {
+    min-height: 40px;
+    padding: 8px 10px;
+  }
+}
