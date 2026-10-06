@@ -60,6 +60,22 @@ test('login, cadastro e acesso administrativo têm formulários e navegação se
   await page.route('https://portal-test.supabase.co/**', (route) => route.abort());
   await page.goto('/cliente/entrar');
   await expect(page.getByRole('heading', { name: 'Entre para agendar' })).toBeVisible();
+  await expect(page.locator('nav, .portal-header')).toHaveCount(0);
+  for (const [width, height] of [
+    [1440, 900],
+    [390, 844],
+    [375, 667],
+    [320, 568],
+  ]) {
+    await page.setViewportSize({ width, height });
+    const layout = await page.evaluate(() => ({
+      width: document.documentElement.scrollWidth,
+      height: document.documentElement.scrollHeight,
+    }));
+    expect(layout.width, JSON.stringify({ width, height, layout })).toBeLessThanOrEqual(width);
+    expect(layout.height, JSON.stringify({ width, height, layout })).toBeLessThanOrEqual(height);
+  }
+
   await expect(page.getByLabel('Nome completo')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Criar conta', exact: true })).toHaveCount(0);
   await expect(page.locator('a[href^="/admin"]')).toHaveCount(0);

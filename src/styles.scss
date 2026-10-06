@@ -1762,3 +1762,171 @@ td small {
     padding: 8px 10px;
   }
 }
+
+.customer-login-page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse at 15% 20%, #12394b 0%, transparent 55%),
+    linear-gradient(135deg, #08131a, #0a202d);
+}
+.customer-login-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/brand-logo.png') 16% center / min(75vw, 750px) auto no-repeat;
+  opacity: 0.14;
+  pointer-events: none;
+  z-index: -1;
+}
+.customer-login-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 32px;
+  border-radius: 24px;
+  border: 1px solid #e1e8ee;
+  background: #fff;
+  box-shadow: 0 30px 90px #0006;
+}
+.customer-login-brand {
+  display: block;
+  width: 72px;
+  margin: 0 auto 18px;
+}
+.customer-login-brand img {
+  display: block;
+}
+.customer-login-card > .eyebrow {
+  display: block;
+  text-align: center;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+}
+.customer-login-card h1 {
+  text-align: center;
+  font-size: 28px;
+  letter-spacing: -1px;
+  margin-top: 10px;
+}
+.customer-login-card > p {
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+  margin: 10px 0 26px;
+}
+.customer-login-card label {
+  margin-bottom: 18px;
+  font-size: 12px;
+}
+.customer-login-card input {
+  border-radius: 10px;
+  background: #f8fafc;
+  min-height: 46px;
+}
+.customer-login-card input:focus {
+  background: white;
+}
+.customer-login-card .button {
+  border-radius: 10px;
+  min-height: 46px;
+}
+.customer-login-card .button.primary {
+  background: #f9d329;
+  border-color: #f9d329;
+  color: #08131a;
+}
+.customer-login-card .button.primary:hover {
+  background: #edc618;
+}
+.customer-login-card .text-button {
+  display: block;
+  text-align: center;
+  margin: 16px auto;
+  font-size: 12px;
+}
+.customer-login-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--muted);
+  margin: 24px 0 16px;
+}
+.customer-login-divider::before,
+.customer-login-divider::after {
+  content: '';
+  height: 1px;
+  background: var(--border);
+  flex: 1;
+}
+.customer-login-register {
+  color: var(--primary-dark);
+}
+@media (max-width: 540px) {
+  .customer-login-page {
+    padding: 16px;
+  }
+  .customer-login-card {
+    padding: 24px;
+  }
+  .customer-login-page::before {
+    background-position: center;
+    background-size: 130vw auto;
+  }
+}
+@media (max-height: 680px) {
+  .customer-login-page {
+    padding-block: 12px;
+  }
+  .customer-login-card {
+    padding-block: 20px;
+  }
+  .customer-login-brand {
+    width: 52px;
+    margin-bottom: 12px;
+  }
+  .customer-login-brand img {
+    width: 52px;
+    height: 52px;
+  }
+  .customer-login-card > p {
+    margin-bottom: 18px;
+  }
+  .customer-login-card label {
+    margin-bottom: 12px;
+  }
+  .customer-login-divider {
+    margin: 18px 0 12px;
+  }
+}
+@media (max-height: 600px) {
+  .customer-login-card {
+    padding: 18px 20px;
+  }
+  .customer-login-brand {
+    width: 40px;
+    margin-bottom: 8px;
+  }
+  .customer-login-brand img {
+    width: 40px;
+    height: 40px;
+  }
+  .customer-login-card h1 {
+    font-size: 24px;
+    line-height: 1.2;
+  }
+  .customer-login-card > p {
+    font-size: 12px;
+    margin-bottom: 14px;
+  }
+  .customer-login-card .text-button {
+    margin-block: 12px;
+  }
+  .customer-login-divider {
+    margin: 12px 0 10px;
+  }
+}

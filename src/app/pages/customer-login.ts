@@ -5,8 +5,12 @@ import { Auth } from '../core/auth';
 import { friendlyError } from '../core/notifications';
 @Component({
   imports: [RouterLink, ReactiveFormsModule],
-  template: `<main class="customer-portal">
-    <section class="panel portal-card">
+  template: `<main class="customer-login-page">
+    <section class="customer-login-card">
+      <a class="customer-login-brand" routerLink="/" aria-label="Voltar à home"
+        ><img src="brand-logo.png" width="72" height="72" alt="Parada Obrigatória"
+      /></a>
+      <span class="eyebrow">SEU VEÍCULO EM BOAS MÃOS</span>
       <h1>Entre para agendar</h1>
       <p>Acesse seus veículos e agendamentos.</p>
       <form [formGroup]="form" (ngSubmit)="submit()">
@@ -22,8 +26,11 @@ import { friendlyError } from '../core/notifications';
           [disabled]="busy() || !auth.initialized() || !auth.client"
         >
           {{ busy() ? 'Aguarde…' : 'Entrar' }}</button
-        ><a routerLink="/cliente/recuperar" class="text-button">Esqueci minha senha</a
-        ><a routerLink="/cliente/cadastro" class="text-button">Criar uma conta</a>
+        ><a routerLink="/cliente/recuperar" class="text-button">Esqueci minha senha</a>
+        <div class="customer-login-divider"><span>Primeira visita?</span></div>
+        <a routerLink="/cliente/cadastro" class="button full customer-login-register"
+          >Criar uma conta</a
+        >
       </form>
     </section>
   </main>`,
