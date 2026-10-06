@@ -22,8 +22,8 @@ import { Notifications, friendlyError } from '../core/notifications';
           class="brand-logo"
           src="brand-logo.png"
           alt="Lava Jato Parada Obrigatória"
-          width="112"
-          height="112"
+          width="72"
+          height="72"
           fetchpriority="high"
         />
         <small>GESTÃO DO LAVA-JATO</small>
