@@ -18,6 +18,7 @@ interface Field {
   type?: string;
   required?: boolean;
   options?: string[];
+  suggestions?: string[];
   relation?: Table;
   wide?: boolean;
 }
@@ -29,6 +30,80 @@ interface CatalogConfig {
   fields: Field[];
   columns: string[];
 }
+const alphabetical = (values: string[]) =>
+  [...values].sort((a, b) => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' }));
+const VEHICLE_BRANDS = alphabetical([
+  'Abarth',
+  'Agrale',
+  'Alfa Romeo',
+  'Aston Martin',
+  'Audi',
+  'Bentley',
+  'BMW',
+  'BYD',
+  'Caoa Chery',
+  'Changan',
+  'Chevrolet',
+  'Chrysler',
+  'Citroën',
+  'Dafra',
+  'Dodge',
+  'Ducati',
+  'Ferrari',
+  'Fiat',
+  'Ford',
+  'GWM',
+  'Harley-Davidson',
+  'Honda',
+  'Hyundai',
+  'Iveco',
+  'JAC',
+  'Jaguar',
+  'Jeep',
+  'Kawasaki',
+  'Kia',
+  'Lamborghini',
+  'Land Rover',
+  'Lexus',
+  'Lifan',
+  'Maserati',
+  'Mercedes-Benz',
+  'Mini',
+  'Mitsubishi',
+  'Nissan',
+  'Peugeot',
+  'Porsche',
+  'RAM',
+  'Renault',
+  'Royal Enfield',
+  'Scania',
+  'Shineray',
+  'Subaru',
+  'Suzuki',
+  'Tesla',
+  'Toyota',
+  'Triumph',
+  'Volkswagen',
+  'Volvo',
+  'Yamaha',
+]);
+const VEHICLE_COLORS = alphabetical([
+  'Amarelo',
+  'Azul',
+  'Bege',
+  'Branco',
+  'Bronze',
+  'Cinza',
+  'Dourado',
+  'Laranja',
+  'Marrom',
+  'Prata',
+  'Preto',
+  'Rosa',
+  'Roxo',
+  'Verde',
+  'Vermelho',
+]);
 const CONFIG: Record<string, CatalogConfig> = {
   clientes: {
     table: 'customers',
@@ -55,14 +130,14 @@ const CONFIG: Record<string, CatalogConfig> = {
     fields: [
       { key: 'customer_id', label: 'Cliente', relation: 'customers', required: true },
       { key: 'plate', label: 'Placa', required: true },
-      { key: 'brand', label: 'Marca', required: true },
+      { key: 'brand', label: 'Marca', required: true, suggestions: VEHICLE_BRANDS },
       { key: 'model', label: 'Modelo', required: true },
       { key: 'year', label: 'Ano', type: 'number' },
-      { key: 'color', label: 'Cor' },
+      { key: 'color', label: 'Cor', suggestions: VEHICLE_COLORS },
       {
         key: 'type',
         label: 'Tipo de veículo',
-        options: ['carro', 'SUV', 'caminhonete', 'moto', 'van', 'outro'],
+        options: alphabetical(['carro', 'SUV', 'caminhonete', 'moto', 'van', 'outro']),
         required: true,
       },
       { key: 'notes', label: 'Observações', type: 'textarea', wide: true },
@@ -90,7 +165,20 @@ const CONFIG: Record<string, CatalogConfig> = {
     columns: ['name', 'position', 'phone', 'email', 'active'],
     fields: [
       { key: 'name', label: 'Nome completo', required: true },
-      { key: 'position', label: 'Função', required: true },
+      {
+        key: 'position',
+        label: 'Função',
+        required: true,
+        suggestions: alphabetical([
+          'Administrador',
+          'Atendente',
+          'Auxiliar',
+          'Caixa',
+          'Gerente',
+          'Lavador',
+          'Polidor',
+        ]),
+      },
       { key: 'phone', label: 'Telefone', type: 'tel' },
       { key: 'email', label: 'E-mail', type: 'email' },
       { key: 'profile_id', label: 'Perfil de acesso (opcional)', relation: 'profiles' },
@@ -248,6 +336,7 @@ const CONFIG: Record<string, CatalogConfig> = {
                   <input
                     [id]="'catalog-' + field.key"
                     [formControlName]="field.key"
+                    [attr.list]="field.suggestions ? 'catalog-options-' + field.key : null"
                     [type]="field.type ?? 'text'"
                     [attr.step]="
                       field.key === 'price' ? '0.01' : field.type === 'number' ? '1' : null
@@ -257,6 +346,14 @@ const CONFIG: Record<string, CatalogConfig> = {
                       field.key === 'email' ? 'email' : field.key === 'phone' ? 'tel' : 'off'
                     "
                   />
+                  @if (field.suggestions) {
+                    <datalist [id]="'catalog-options-' + field.key">
+                      @for (option of suggestions(field); track option) {
+                        <option [value]="option"></option>
+                      }
+                    </datalist>
+                    <small class="help">Escolha uma opção ou digite outra.</small>
+                  }
                 }
                 @if (form.get(field.key)?.invalid && form.get(field.key)?.touched) {
                   <small class="form-error">{{
@@ -437,7 +534,24 @@ export class Catalog implements OnDestroy {
     );
   }
   options(table: Table) {
-    return (this.store.db()[table] as unknown as Row[]).filter((r) => r['active'] !== false);
+    return (this.store.db()[table] as unknown as Row[])
+      .filter((r) => r['active'] !== false)
+      .sort((a, b) =>
+        String(a['name'] ?? '').localeCompare(String(b['name'] ?? ''), 'pt-BR', {
+          sensitivity: 'base',
+        }),
+      );
+  }
+  suggestions(field: Field) {
+    const existing = (this.store.db()[this.config.table] as unknown as Row[])
+      .map((row) => String(row[field.key] ?? '').trim())
+      .filter(Boolean);
+    const values = new Map<string, string>();
+    for (const value of [...(field.suggestions ?? []), ...existing]) {
+      const key = value.toLocaleLowerCase('pt-BR');
+      if (!values.has(key)) values.set(key, value);
+    }
+    return alphabetical([...values.values()]);
   }
   display(row: Row, col: string) {
     if (['phone', 'whatsapp'].includes(col)) return row[col] ? formatPhone(String(row[col])) : '—';
