@@ -44,7 +44,7 @@ O script `scripts/environment.mjs` lê `.env` ou o ambiente de build e gera `src
 
 1. Crie um projeto PostgreSQL no plano adequado do Supabase.
 2. No SQL Editor, execute **em ordem** os sete arquivos de `supabase/migrations/`. Alternativamente, com Supabase CLI e projeto vinculado, use `supabase db push`.
-3. Em Authentication, habilite cadastro por e-mail para os clientes e mantenha a confirmação de e-mail. Configure Site URL e URLs autorizadas (`http://localhost:4200/login`, `http://localhost:4200/cliente` e as URLs finais `/login` e `/cliente`). Configure a política de senha com mínimo de 8 caracteres. Para e-mails de recuperação em produção, avalie as limitações do provedor de e-mail padrão e configure SMTP de sua escolha se necessário; nenhum SMTP pago foi adicionado.
+3. Em Authentication, habilite cadastro por e-mail para os clientes e mantenha a confirmação de e-mail. Configure Site URL e URLs autorizadas (`http://localhost:4200/admin/login`, `http://localhost:4200/cliente` e as URLs finais `/admin/login` e `/cliente`). Configure a política de senha com mínimo de 8 caracteres. Para e-mails de recuperação em produção, avalie as limitações do provedor de e-mail padrão e configure SMTP de sua escolha se necessário; nenhum SMTP pago foi adicionado.
 4. Crie ou convide o primeiro usuário pelo painel Auth. Copie seu UUID. Pelo SQL Editor, provisionado por um administrador do projeto, execute:
 
 ```sql
@@ -62,11 +62,11 @@ Detalhes: [banco e permissões](docs/database.md), [arquitetura](docs/architectu
 
 A home informa lavagem americana simples (hatch/sedan) a partir de R$ 60, SUV com cera líquida Vonixx a partir de R$ 70, caminhonete com cera líquida Vonixx a partir de R$ 80 e moto com cera líquida Vonixx a partir de R$ 35. Divulga também aspiração interna, polimento e cera e limpeza de rodas/pneus, sem inventar preços para esses cuidados. Contatos: (61) 99137-9913 e (61) 99170-5891; Condomínio Mestre D’Armas, em frente ao Posto Tiquira. O link de mapa pesquisa a região; não presume coordenadas do estabelecimento.
 
-A tabela pública reproduz as imagens em `src/app/pages/home.ts`. Serviços e valores disponíveis para reserva continuam sendo os do catálogo configurado pela equipe; mantenha ambos alinhados. A home não consulta nem expõe tabelas internas, não exige login e mantém o acesso de equipe em `/login`, protegido pelo perfil e RLS.
+A tabela pública reproduz as imagens em `src/app/pages/home.ts`. Serviços e valores disponíveis para reserva continuam sendo os do catálogo configurado pela equipe; mantenha ambos alinhados. A home não consulta nem expõe tabelas internas, não exige login e mantém o acesso de equipe em `/admin/login`, protegido pelo perfil e RLS.
 
 ## Portal do cliente
 
-A página inicial `/` é pública e apresenta serviços, preços iniciais, contatos e localização das imagens fornecidas. O botão de agendamento abre `/cliente`. O cliente cria uma conta com nome, telefone, e-mail e senha; confirma o e-mail; entra e conclui seus dados, se necessário. Depois cadastra um veículo, seleciona serviço e horário e acompanha ou cancela suas próprias reservas futuras. A equipe continua entrando por `/login` e visualiza as reservas em `/agendamentos`.
+A página inicial `/` é pública e apresenta serviços, preços iniciais, contatos e localização das imagens fornecidas. O botão de agendamento abre `/cliente`. O cliente cria uma conta com nome, telefone, e-mail e senha; confirma o e-mail; entra e conclui seus dados, se necessário. Depois cadastra um veículo, seleciona serviço e horário e acompanha ou cancela suas próprias reservas futuras. A equipe continua entrando por `/admin/login` e visualiza as reservas em `/admin/agendamentos`.
 
 **Projeto já configurado com as migrations 001 a 006:** aplique somente `supabase/migrations/202610060007_customer_portal.sql`. No painel Supabase, habilite cadastro por e-mail e autorize o redirecionamento para `/cliente`. A alteração de `supabase/config.toml` configura o ambiente local; não altera automaticamente o projeto hospedado.
 
@@ -149,3 +149,11 @@ git remote -v
 git remote add origin URL_DO_REPOSITORIO
 # Revisar antes de publicar; nenhum push automático.
 ```
+
+## Separação de acessos
+
+O site público não divulga links de acesso da equipe. Rotas: `/` (home), `/cliente/cadastro` (cadastro iniciado pela home), `/cliente/entrar` (login), `/cliente/recuperar` (recuperação) e `/cliente` (veículos e reservas após autenticação). Login e cadastro têm componentes e formulários distintos.
+
+A equipe usa diretamente `/admin/login` e navega em `/admin/...`. A autenticação administrativa exige perfil ativo da equipe; uma conta de cliente é recusada. O login do cliente recusa perfis da equipe. As permissões efetivas permanecem no banco por RLS/RPC; a ausência de um link público não substitui controle de acesso. Não há redirecionamento da antiga `/login` para divulgar o novo endereço.
+
+No Supabase hospedado, atualize as URLs autorizadas para incluir `/admin/login`, `/cliente` e `/cliente/recuperar` no domínio do site. A recuperação de senha mantém o usuário no seu contexto. Não é necessária nova migration para esta separação.

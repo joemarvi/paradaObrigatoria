@@ -414,3 +414,10 @@
     font-size: 12px;
   }
 }
+@media (max-width: 720px) {
+  .home-nav nav {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 14px 20px;
+  }
+}

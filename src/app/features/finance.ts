@@ -141,7 +141,7 @@ import { Empty, Icon, Modal } from '../shared/ui';
             }}
           </p>
         </div>
-        <a routerLink="/relatorios" class="text-button">Relatórios</a>
+        <a routerLink="/admin/relatorios" class="text-button">Relatórios</a>
       </div>
       <div class="table-wrap">
         <table>

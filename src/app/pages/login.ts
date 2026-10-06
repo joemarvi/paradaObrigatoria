@@ -1,13 +1,13 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { Auth } from '../core/auth';
 import { environment } from '../core/environment';
 import { friendlyError } from '../core/notifications';
 import { Icon } from '../shared/ui';
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, Icon, RouterLink],
+  imports: [ReactiveFormsModule, Icon],
   template: `<main class="login-page">
     <section class="login-story">
       <span class="login-brand-name">Lava Jato · Parada Obrigatória</span>
@@ -99,7 +99,6 @@ import { Icon } from '../shared/ui';
             Abrir demonstração<app-icon name="arrow" />
           </button>
         }
-        <a class="text-button" routerLink="/cliente">Sou cliente · Cadastrar ou agendar</a>
         <small class="login-security"
           ><app-icon name="shield" /> Acesso restrito à equipe autorizada</small
         >
@@ -127,7 +126,7 @@ export class Login {
   }
   demo() {
     this.auth.enterDemo();
-    void this.router.navigateByUrl('/dashboard');
+    void this.router.navigateByUrl('/admin/dashboard');
   }
   async submit() {
     this.error.set('');
@@ -151,11 +150,7 @@ export class Login {
       } else {
         await this.auth.login(email, password);
         await this.router.navigateByUrl(
-          this.auth.role() === 'cliente'
-            ? '/cliente'
-            : this.auth.role() === 'operador'
-              ? '/fila'
-              : '/dashboard',
+          this.auth.role() === 'operador' ? '/admin/fila' : '/admin/dashboard',
         );
       }
     } catch (e) {

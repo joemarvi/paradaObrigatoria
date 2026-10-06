@@ -21,7 +21,6 @@ import { friendlyError } from '../core/notifications';
           height="64"
         /><strong>Área do cliente</strong></a
       >
-      <a routerLink="/login" class="text-button">Acesso da equipe</a>
       @if (auth.user()) {
         <button class="button small" (click)="logout()" [disabled]="busy()">Sair</button>
       }
@@ -34,54 +33,6 @@ import { friendlyError } from '../core/notifications';
     }
     @if (!auth.initialized() || loading()) {
       <p role="status">Carregando…</p>
-    } @else if (auth.profile()) {
-      <section class="panel portal-card">
-        <h1>Acesso da equipe</h1>
-        <p>Use o painel de gestão para atender os clientes.</p>
-        <a routerLink="/dashboard" class="button primary">Abrir painel</a>
-      </section>
-    } @else if (!auth.user()) {
-      <section class="panel portal-card">
-        <span class="eyebrow">CUIDE DO SEU VEÍCULO</span>
-        <h1>{{ registering() ? 'Crie sua conta' : 'Entre para agendar' }}</h1>
-        <p>Cadastre-se para escolher um serviço e realizar seu agendamento.</p>
-        <form [formGroup]="accessForm" (ngSubmit)="access()">
-          @if (registering()) {
-            <label
-              >Nome completo<input formControlName="name" autocomplete="name" maxlength="120"
-            /></label>
-            <label>Telefone<input type="tel" formControlName="phone" autocomplete="tel" /></label>
-          }
-          <label
-            >E-mail<input type="email" formControlName="email" autocomplete="username"
-          /></label>
-          <label
-            >Senha<input
-              type="password"
-              formControlName="password"
-              [attr.autocomplete]="registering() ? 'new-password' : 'current-password'"
-              placeholder="Mínimo de 8 caracteres"
-          /></label>
-          <button class="button primary full" [disabled]="busy() || !auth.client">
-            {{ busy() ? 'Aguarde…' : registering() ? 'Criar conta' : 'Entrar' }}
-          </button>
-          <button
-            class="text-button"
-            type="button"
-            (click)="registering.set(!registering()); error.set(''); message.set('')"
-          >
-            {{ registering() ? 'Já tenho conta' : 'Quero me cadastrar' }}
-          </button>
-          @if (!registering()) {
-            <button type="button" class="text-button" (click)="recover()" [disabled]="busy()">
-              Esqueci minha senha
-            </button>
-          }
-          @if (!auth.client) {
-            <p class="help">O acesso está indisponível no momento.</p>
-          }
-        </form>
-      </section>
     } @else if (!auth.customer()) {
       <section class="panel portal-card">
         <h1>Complete seu cadastro</h1>
@@ -234,7 +185,6 @@ export class CustomerPortal {
   readonly fb = inject(FormBuilder);
   readonly busy = signal(false);
   readonly loading = signal(true);
-  readonly registering = signal(true);
   readonly addingVehicle = signal(false);
   readonly cancelTarget = signal('');
   readonly error = signal('');
@@ -250,8 +200,6 @@ export class CustomerPortal {
   readonly accessForm = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(120)]],
     phone: ['', [Validators.required, phoneValidator]],
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(8)]],
   });
   readonly vehicleForm = this.fb.nonNullable.group({
     plate: [
@@ -323,37 +271,6 @@ export class CustomerPortal {
     );
     this.appointments.set(results[2].data as Appointment[]);
   }
-  async access() {
-    const c = this.accessForm.controls;
-    if (
-      c.email.invalid ||
-      c.password.invalid ||
-      (this.registering() && (c.name.invalid || c.phone.invalid))
-    ) {
-      this.error.set('Informe os dados válidos e uma senha de pelo menos 8 caracteres.');
-      return;
-    }
-    await this.run(async () => {
-      const v = this.accessForm.getRawValue();
-      if (this.registering()) {
-        const session = await this.auth.signUpCustomer(
-          v.name.trim(),
-          v.phone.replace(/\D/g, ''),
-          v.email.trim(),
-          v.password,
-        );
-        if (!session) {
-          this.message.set(
-            'Confira seu e-mail para confirmar o cadastro. Depois entre com seu e-mail e senha.',
-          );
-          this.registering.set(false);
-          this.accessForm.controls.password.reset();
-          return;
-        }
-      } else await this.auth.customerLogin(v.email.trim(), v.password);
-      await this.load();
-    });
-  }
   async complete() {
     const v = this.accessForm.getRawValue();
     if (this.accessForm.controls.name.invalid || this.accessForm.controls.phone.invalid) {
@@ -363,16 +280,6 @@ export class CustomerPortal {
     await this.run(async () => {
       await this.auth.completeCustomerRegistration(v.name.trim(), v.phone.replace(/\D/g, ''));
       await this.load();
-    });
-  }
-  async recover() {
-    if (this.accessForm.controls.email.invalid) {
-      this.error.set('Informe seu e-mail para recuperar a senha.');
-      return;
-    }
-    await this.run(async () => {
-      await this.auth.recover(this.accessForm.controls.email.value.trim());
-      this.message.set('Se o e-mail estiver cadastrado, você receberá as instruções.');
     });
   }
   async refresh() {
@@ -444,7 +351,7 @@ export class CustomerPortal {
   }
   async logout() {
     await this.run(async () => {
-      await this.auth.logout('/cliente');
+      await this.auth.logout('/cliente/entrar');
       this.vehicles.set([]);
       this.services.set([]);
       this.appointments.set([]);

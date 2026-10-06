@@ -44,10 +44,40 @@ test('home pública apresenta serviços, preços e contatos sem consultar dados 
   }
   expect(requests).toEqual([]);
   expect(errors).toEqual([]);
+  await expect(page.locator('a[href^="/admin"]')).toHaveCount(0);
+  await expect(page.getByText('Acesso da equipe')).toHaveCount(0);
   await page.getByRole('link', { name: 'Agendar meu atendimento' }).click();
   await expect(page).toHaveURL(/cliente/);
-  await expect(page.getByRole('heading', { name: 'Crie sua conta' })).toBeVisible();
-  await page.goto('/caixa');
+  await expect(page.getByRole('heading', { name: 'Entre para agendar' })).toBeVisible();
+  await page.goto('/admin/caixa');
   await expect(page).toHaveURL(/login/);
   await expect(page.getByRole('heading', { name: 'Entre na sua conta' })).toBeVisible();
+});
+
+test('login, cadastro e acesso administrativo têm formulários e navegação separados', async ({
+  page,
+}) => {
+  await page.route('https://portal-test.supabase.co/**', (route) => route.abort());
+  await page.goto('/cliente/entrar');
+  await expect(page.getByRole('heading', { name: 'Entre para agendar' })).toBeVisible();
+  await expect(page.getByLabel('Nome completo')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Criar conta', exact: true })).toHaveCount(0);
+  await expect(page.locator('a[href^="/admin"]')).toHaveCount(0);
+  await page.getByRole('link', { name: 'Criar uma conta' }).click();
+  await expect(page).toHaveURL(/cliente\/cadastro/);
+  await expect(page.getByLabel('Nome completo')).toBeVisible();
+  await expect(page.getByLabel('Confirme sua senha')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Entrar', exact: true })).toHaveCount(0);
+  await expect(page.locator('a[href^="/admin"]')).toHaveCount(0);
+  await page.goto('/cliente/recuperar');
+  await expect(page.getByRole('heading', { name: 'Recuperar acesso' })).toBeVisible();
+  await expect(page.locator('a[href^="/admin"]')).toHaveCount(0);
+  await page.goto('/admin/login');
+  await expect(page.getByRole('heading', { name: 'Entre na sua conta' })).toBeVisible();
+  await expect(page.locator('a[href^="/cliente"]')).toHaveCount(0);
+  await expect(page.getByText(/Sou cliente/)).toHaveCount(0);
+  await expect(page.getByLabel('Nome completo')).toHaveCount(0);
+  await page.goto('/login');
+  await expect(page.getByRole('heading', { name: 'Essa parada não existe.' })).toBeVisible();
+  await expect(page.locator('a[href^="/admin"]')).toHaveCount(0);
 });

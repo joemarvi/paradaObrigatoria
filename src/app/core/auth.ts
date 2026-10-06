@@ -48,12 +48,16 @@ export class Auth {
         this.customer.set(null);
         if (event === 'SIGNED_OUT' && !this.demo())
           void this.router.navigateByUrl(
-            this.router.url.startsWith('/cliente') ? '/cliente' : '/login',
+            this.router.url.startsWith('/cliente') ? '/cliente/entrar' : '/admin/login',
           );
       }
       if (event === 'PASSWORD_RECOVERY') {
         this.recovery.set(true);
-        void this.router.navigateByUrl('/login');
+        void this.router.navigateByUrl(
+          location.pathname.startsWith('/cliente') || this.router.url.startsWith('/cliente')
+            ? '/cliente/recuperar'
+            : '/admin/login',
+        );
       }
       if (session)
         setTimeout(() => {
@@ -105,7 +109,7 @@ export class Auth {
     if (error) throw error;
     this.user.set(data.user);
     await this.loadProfile(data.user.id);
-    if (!this.profile()?.active && !this.customer()?.active) {
+    if (!this.profile()?.active) {
       await this.logout();
       throw new Error('Perfil sem acesso');
     }
@@ -142,13 +146,17 @@ export class Auth {
     if (error) throw error;
     this.user.set(data.user);
     await this.loadProfile(data.user.id);
+    if (this.profile()) {
+      await this.logout('/cliente/entrar');
+      throw new Error('Acesso não permitido');
+    }
   }
   enterDemo() {
     if (this.config.demo && !this.client) {
       this.demo.set(true);
     }
   }
-  async logout(redirect = '/login') {
+  async logout(redirect = '/admin/login') {
     if (this.client) {
       const { error } = await this.client.auth.signOut();
       if (error) throw error;
@@ -160,19 +168,19 @@ export class Auth {
     this.recovery.set(false);
     await this.router.navigateByUrl(redirect);
   }
-  async recover(email: string) {
+  async recover(email: string, redirect = '/admin/login') {
     if (!this.client) throw new Error('Supabase não configurado');
     const { error } = await this.client.auth.resetPasswordForEmail(email, {
-      redirectTo: location.origin + '/login',
+      redirectTo: location.origin + redirect,
     });
     if (error) throw error;
   }
-  async changePassword(password: string) {
+  async changePassword(password: string, redirect = '/admin/login') {
     if (!this.client) throw new Error('Supabase não configurado');
     const { error } = await this.client.auth.updateUser({ password });
     if (error) throw error;
     this.recovery.set(false);
-    await this.logout();
+    await this.logout(redirect);
   }
   allows(roles: Role[]) {
     return this.authenticated() && roles.includes(this.role());
@@ -183,7 +191,24 @@ export const authGuard: CanActivateFn = async (route) => {
   const router = inject(Router);
   await auth.ready;
   if (auth.customer()) return router.createUrlTree(['/cliente']);
-  if (!auth.authenticated()) return router.createUrlTree(['/login']);
+  if (!auth.authenticated()) return router.createUrlTree(['/admin/login']);
   const roles = route.data['roles'] as Role[] | undefined;
-  return !roles || auth.allows(roles) ? true : router.createUrlTree(['/fila']);
+  return !roles || auth.allows(roles) ? true : router.createUrlTree(['/admin/fila']);
+};
+
+export const customerGuard: CanActivateFn = async () => {
+  const auth = inject(Auth);
+  const router = inject(Router);
+  await auth.ready;
+  if (auth.profile() || auth.demo()) return router.createUrlTree(['/']);
+  return auth.user() ? true : router.createUrlTree(['/cliente/entrar']);
+};
+
+export const customerAccessGuard: CanActivateFn = async (route) => {
+  const auth = inject(Auth);
+  const router = inject(Router);
+  await auth.ready;
+  if (auth.profile() || auth.demo()) return router.createUrlTree(['/']);
+  if (auth.user() && !route.data['recovery']) return router.createUrlTree(['/cliente']);
+  return true;
 };

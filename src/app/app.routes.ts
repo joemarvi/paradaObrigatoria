@@ -1,16 +1,33 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './core/auth';
+import { authGuard, customerGuard, customerAccessGuard } from './core/auth';
 const office = ['administrador', 'gerente', 'atendente'];
 const management = ['administrador', 'gerente'];
 export const routes: Routes = [
   {
+    path: 'cliente/entrar',
+    canActivate: [customerAccessGuard],
+    loadComponent: () => import('./pages/customer-login').then((m) => m.CustomerLogin),
+  },
+  {
+    path: 'cliente/cadastro',
+    canActivate: [customerAccessGuard],
+    loadComponent: () => import('./pages/customer-register').then((m) => m.CustomerRegister),
+  },
+  {
+    path: 'cliente/recuperar',
+    canActivate: [customerAccessGuard],
+    data: { recovery: true },
+    loadComponent: () => import('./pages/customer-recovery').then((m) => m.CustomerRecovery),
+  },
+  {
     path: 'cliente',
+    canActivate: [customerGuard],
     loadComponent: () => import('./pages/customer-portal').then((m) => m.CustomerPortal),
   },
-  { path: 'login', loadComponent: () => import('./pages/login').then((m) => m.Login) },
+  { path: 'admin/login', loadComponent: () => import('./pages/login').then((m) => m.Login) },
   { path: '', pathMatch: 'full', loadComponent: () => import('./pages/home').then((m) => m.Home) },
   {
-    path: '',
+    path: 'admin',
     canActivate: [authGuard],
     loadComponent: () => import('./layout/shell').then((m) => m.Shell),
     children: [

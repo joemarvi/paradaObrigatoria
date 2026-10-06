@@ -43,3 +43,7 @@ A auditoria de dependências é um retrato da data e deve ser repetida antes do 
 ## Home pública
 
 A home em `/` foi validada com os quatro serviços e preços das imagens, ambos os links de WhatsApp, localização e acesso ao cadastro do cliente. O teste confirma que a home não consulta Supabase nem dados internos, e que um visitante anônimo continua sendo redirecionado ao login ao tentar acessar `/caixa`. Foram verificadas larguras de 1440, 834, 390 e 320 pixels sem rolagem horizontal. `npm run test:portal` cobre agora o fluxo do cliente e a home pública. Lint e build passaram.
+
+## Separação dos contextos
+
+Validação após separar rotas e formulários: 21 testes unitários e 10 cenários de navegador (7 administrativos e 3 públicos). Cobertura de cadastro iniciado pela home, páginas distintas de cadastro/login/recuperação, ausência de links administrativos nas páginas públicas e ausência de links de cliente no login administrativo. Os testes de autenticação rejeitam clientes no login administrativo e contas da equipe no login do cliente. As rotas administrativas usam `/admin/...`, com entrada em `/admin/login`; a antiga `/login` exibe página não encontrada. Lint e build passaram. Nenhuma migration ou alteração no Supabase remoto foi necessária nesta etapa.

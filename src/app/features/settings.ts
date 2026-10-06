@@ -57,11 +57,11 @@ import { Icon, Modal } from '../shared/ui';
         <section class="panel">
           <div class="panel-header"><h2>Catálogo e equipe</h2></div>
           <div class="panel-body">
-            <a routerLink="/servicos" class="quick-link" style="margin-bottom:12px"
+            <a routerLink="/admin/servicos" class="quick-link" style="margin-bottom:12px"
               ><app-icon name="wash" /> Serviços e preços<app-icon name="arrow" /></a
-            ><a routerLink="/categorias" class="quick-link" style="margin-bottom:12px"
+            ><a routerLink="/admin/categorias" class="quick-link" style="margin-bottom:12px"
               ><app-icon name="grid" /> Categorias de serviços<app-icon name="arrow" /></a
-            ><a routerLink="/funcionarios" class="quick-link"
+            ><a routerLink="/admin/funcionarios" class="quick-link"
               ><app-icon name="users" /> Funcionários<app-icon name="arrow"
             /></a>
           </div>

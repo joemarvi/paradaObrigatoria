@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 test.beforeEach(async ({ page }) => {
-  await page.goto('/login');
+  await page.goto('/admin/login');
   await expect(page).toHaveURL(/login/);
   await page.getByRole('button', { name: 'Abrir demonstração' }).click();
   await expect(page.getByRole('heading', { name: 'Visão geral', exact: true })).toBeVisible();
@@ -136,7 +136,7 @@ test('menu mobile, responsividade e proteção após sair', async ({ page }) => 
   );
   await page.getByRole('button', { name: 'Sair', exact: true }).click();
   await expect(page).toHaveURL(/login/);
-  await page.goto('/caixa');
+  await page.goto('/admin/caixa');
   await expect(page).toHaveURL(/login/);
 });
 test('relatório permite filtros e exportação CSV', async ({ page }) => {

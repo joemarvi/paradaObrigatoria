@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { AUTH_CONFIGURATION, Auth, authGuard } from './auth';
+import { AUTH_CONFIGURATION, Auth, authGuard, customerGuard } from './auth';
 const router = {
   navigateByUrl: vi.fn(() => Promise.resolve(true)),
   createUrlTree: vi.fn(() => new UrlTree()),
@@ -90,11 +90,11 @@ describe('Autenticação e controle de acesso', () => {
     const route = new ActivatedRouteSnapshot();
     route.data = { roles: ['gerente'] };
     await TestBed.runInInjectionContext(() => authGuard(route, {} as RouterStateSnapshot));
-    expect(router.createUrlTree).toHaveBeenLastCalledWith(['/login']);
+    expect(router.createUrlTree).toHaveBeenLastCalledWith(['/admin/login']);
     auth.client = fakeClient();
     await auth.login('equipe@example.com', 'senha-teste');
     await TestBed.runInInjectionContext(() => authGuard(route, {} as RouterStateSnapshot));
-    expect(router.createUrlTree).toHaveBeenLastCalledWith(['/fila']);
+    expect(router.createUrlTree).toHaveBeenLastCalledWith(['/admin/fila']);
   });
   it('cliente autenticado não acessa a estrutura ou permissões da equipe', async () => {
     const auth = TestBed.inject(Auth);
@@ -116,5 +116,51 @@ describe('Autenticação e controle de acesso', () => {
     expect(router.createUrlTree).toHaveBeenLastCalledWith(['/cliente']);
     await auth.logout();
     expect(auth.customer()).toBeNull();
+  });
+  it('login de cliente recusa conta da equipe e retorna ao contexto público', async () => {
+    const auth = TestBed.inject(Auth);
+    await auth.ready;
+    auth.client = fakeClient();
+    await expect(auth.customerLogin('equipe@example.com', 'senha-teste')).rejects.toThrow(
+      'Acesso não permitido',
+    );
+    expect(auth.authenticated()).toBe(false);
+    expect(router.navigateByUrl).toHaveBeenLastCalledWith('/cliente/entrar');
+  });
+  it('portal exige sessão de cliente e não mostra painel da equipe', async () => {
+    const auth = TestBed.inject(Auth);
+    await auth.ready;
+    const route = new ActivatedRouteSnapshot();
+    await TestBed.runInInjectionContext(() => customerGuard(route, {} as RouterStateSnapshot));
+    expect(router.createUrlTree).toHaveBeenLastCalledWith(['/cliente/entrar']);
+    auth.client = fakeClient();
+    await auth.login('equipe@example.com', 'senha-teste');
+    await TestBed.runInInjectionContext(() => customerGuard(route, {} as RouterStateSnapshot));
+    expect(router.createUrlTree).toHaveBeenLastCalledWith(['/']);
+  });
+  it('login administrativo recusa cliente mesmo com cadastro ativo', async () => {
+    const auth = TestBed.inject(Auth);
+    await auth.ready;
+    const client = fakeClient();
+    client.from = ((table: string) => ({
+      select: () => ({
+        eq: () =>
+          table === 'customer_accounts'
+            ? { maybeSingle: async () => ({ data: { customer_id: 'c1' }, error: null }) }
+            : {
+                single: async () =>
+                  table === 'profiles'
+                    ? { data: null, error: { code: 'PGRST116' } }
+                    : { data: { id: 'c1', name: 'Cliente', active: true }, error: null },
+              },
+      }),
+    })) as unknown as typeof client.from;
+    auth.client = client;
+    await expect(auth.login('cliente@example.com', 'senha-teste')).rejects.toThrow(
+      'Perfil sem acesso',
+    );
+    expect(auth.user()).toBeNull();
+    expect(auth.customer()).toBeNull();
+    expect(router.navigateByUrl).toHaveBeenLastCalledWith('/admin/login');
   });
 });

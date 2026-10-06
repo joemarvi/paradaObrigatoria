@@ -18,8 +18,9 @@ import { Badge, Empty, Icon } from '../shared/ui';
         <p>Olá, {{ auth.name().split(' ')[0] }}. Veja como está o movimento de hoje.</p>
       </div>
       <div class="header-actions">
-        <a class="button" routerLink="/agendamentos"><app-icon name="calendar" /> Ver agenda</a
-        ><a class="button primary" routerLink="/ordens-servico"
+        <a class="button" routerLink="/admin/agendamentos"
+          ><app-icon name="calendar" /> Ver agenda</a
+        ><a class="button primary" routerLink="/admin/ordens-servico"
           ><app-icon name="plus" /> Nova entrada</a
         >
       </div>
@@ -55,7 +56,7 @@ import { Badge, Empty, Icon } from '../shared/ui';
                 <h2>Agora no lava-jato</h2>
                 <p>Acompanhe os veículos em atendimento</p>
               </div>
-              <a routerLink="/fila" class="text-button"
+              <a routerLink="/admin/fila" class="text-button"
                 >Ver fila <span aria-hidden="true">↗</span></a
               >
             </div>
@@ -150,7 +151,7 @@ import { Badge, Empty, Icon } from '../shared/ui';
               <app-empty title="Agenda livre" description="Nenhum agendamento hoje." />
             }
             <a
-              routerLink="/agendamentos"
+              routerLink="/admin/agendamentos"
               class="text-button"
               style="display:block;text-align:center;padding:15px"
               >Ver agenda completa →</a
@@ -179,7 +180,7 @@ import { Badge, Empty, Icon } from '../shared/ui';
                 <span>Veículos concluídos hoje</span><strong>{{ s.completed }}</strong>
               </div>
               <small class="help">¹ Recebido hoje ÷ ordens com recebimento.</small
-              ><a routerLink="/caixa" class="button full" style="margin-top:15px"
+              ><a routerLink="/admin/caixa" class="button full" style="margin-top:15px"
                 >Acessar caixa <app-icon name="arrow"
               /></a>
             </div>
@@ -189,7 +190,7 @@ import { Badge, Empty, Icon } from '../shared/ui';
       @if (!s.registerOpen) {
         <div class="alert warning">
           <span>O caixa está fechado. Abra para começar a receber pagamentos.</span
-          ><a routerLink="/caixa" class="text-button">Abrir caixa</a>
+          ><a routerLink="/admin/caixa" class="text-button">Abrir caixa</a>
         </div>
       }
     } @else {
@@ -201,11 +202,11 @@ import { Badge, Empty, Icon } from '../shared/ui';
       </div>
     }
     <div class="quick-links">
-      <a routerLink="/clientes" class="quick-link"
+      <a routerLink="/admin/clientes" class="quick-link"
         ><app-icon name="users" /> Cadastrar cliente<app-icon name="arrow" /></a
-      ><a routerLink="/agendamentos" class="quick-link"
+      ><a routerLink="/admin/agendamentos" class="quick-link"
         ><app-icon name="calendar" /> Novo agendamento<app-icon name="arrow" /></a
-      ><a routerLink="/pagamentos" class="quick-link"
+      ><a routerLink="/admin/pagamentos" class="quick-link"
         ><app-icon name="cash" /> Receber pagamento<app-icon name="arrow"
       /></a>
     </div>

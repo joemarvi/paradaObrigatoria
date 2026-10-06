@@ -5,8 +5,8 @@
 3. Crie um projeto Pages conectado ao repositório.
 4. Configure `NODE_VERSION=24.18.0`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `DEMO_MODE=false`.
 5. Build: `npm run build`; saída: `dist/parada-obrigatoria/browser`.
-6. Configure Site URL e redirect `/login` no Supabase Auth com o domínio Pages.
-7. Abra `/login`, rotas profundas, recuperação de senha e navegação mobile. Execute um ciclo completo de atendimento/caixa com cada papel.
+6. Configure Site URL e redirect `/admin/login` no Supabase Auth com o domínio Pages.
+7. Abra `/admin/login`, rotas profundas, recuperação de senha e navegação mobile. Execute um ciclo completo de atendimento/caixa com cada papel.
 
 `public/_redirects` fornece fallback SPA; `_headers` fornece CSP, bloqueio de iframe e restrições de recursos. CSP autoriza o domínio padrão `*.supabase.co`; se usar domínio Supabase personalizado, acrescente **somente** esse domínio em connect-src. Não libere scripts externos indiscriminadamente.
 

@@ -89,20 +89,26 @@ test('cliente confirma cadastro, entra, cadastra veículo, agenda e cancela', as
       body: JSON.stringify(result),
     });
   });
-  await page.goto('/cliente');
-  await expect(page).toHaveURL(/cliente/);
+  await page.goto('/');
+  await page.getByRole('link', { name: 'Criar conta', exact: true }).click();
+  await expect(page).toHaveURL(/cliente\/cadastro/);
   await expect(page.getByRole('heading', { name: 'Crie sua conta' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Agendar atendimento' })).toHaveCount(0);
   await page.getByLabel('Nome completo').fill('Cliente Teste');
   await page.getByLabel('Telefone').fill('11987654321');
   await page.getByLabel('E-mail', { exact: true }).fill(user.email);
   await page.getByLabel('Senha', { exact: true }).fill('senha-teste-123');
+  await page.getByLabel('Confirme sua senha').fill('senha-teste-123');
   await page.getByRole('button', { name: 'Criar conta', exact: true }).click();
   await expect(page.getByRole('status')).toContainText('confirmar');
   expect(calls).toEqual(['signup']);
+  await page.getByRole('link', { name: 'Entrar na minha conta' }).click();
+  await page.getByLabel('E-mail', { exact: true }).fill(user.email);
   await page.getByLabel('Senha', { exact: true }).fill('senha-teste-123');
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Complete seu cadastro' })).toBeVisible();
+  await page.getByLabel('Nome completo').fill('Cliente Teste');
+  await page.getByLabel('Telefone').fill('11987654321');
   await page.getByRole('button', { name: 'Salvar cadastro' }).click();
   await expect(page.getByRole('heading', { name: 'Olá, Cliente Teste' })).toBeVisible();
   await page.getByRole('button', { name: 'Adicionar veículo' }).click();

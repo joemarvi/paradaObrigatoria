@@ -13,7 +13,8 @@ import { Icon } from '../shared/ui';
         ></a
       >
       <nav aria-label="Navegação do site">
-        <a href="#servicos">Serviços e preços</a><a href="#contato">Onde estamos</a
+        <a href="#servicos">Serviços e preços</a><a routerLink="/cliente/entrar">Entrar</a
+        ><a routerLink="/cliente/cadastro">Criar conta</a><a href="#contato">Onde estamos</a
         ><a routerLink="/cliente" class="home-button">Agendar</a>
       </nav>
     </header>
@@ -139,13 +140,13 @@ import { Icon } from '../shared/ui';
           >(61) 99137-9913 <app-icon name="arrow" /></a
         ><a href="https://wa.me/5561991705891" target="_blank" rel="noopener noreferrer"
           >(61) 99170-5891 <app-icon name="arrow" /></a
-        ><a routerLink="/cliente" class="home-button">Cadastrar e agendar</a>
+        ><a routerLink="/cliente/cadastro" class="home-button">Criar minha conta</a>
       </div>
     </section>
     <footer class="home-footer home-container">
       <span>Parada Obrigatória · Lava Jato</span>
       <div>
-        <a routerLink="/cliente">Área do cliente</a><a routerLink="/login">Acesso da equipe</a>
+        <a routerLink="/cliente">Área do cliente</a>
       </div>
     </footer>
   </main>`,

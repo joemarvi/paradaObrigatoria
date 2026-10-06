@@ -95,7 +95,7 @@ import { Notifications } from '../core/notifications';
                     Serviço concluído<app-icon name="check" />
                   </button>
                 } @else if (auth.role() !== 'operador') {
-                  <a class="button primary small" routerLink="/pagamentos"
+                  <a class="button primary small" routerLink="/admin/pagamentos"
                     >Receber pagamento<app-icon name="cash"
                   /></a>
                 }
@@ -181,8 +181,8 @@ import { Notifications } from '../core/notifications';
             >
             <p class="help wide">
               Cliente: {{ selectedCustomer() }} ·
-              <a routerLink="/clientes" (click)="entry.set(false)">Cadastrar cliente</a> ·
-              <a routerLink="/veiculos" (click)="entry.set(false)">Cadastrar veículo</a>
+              <a routerLink="/admin/clientes" (click)="entry.set(false)">Cadastrar cliente</a> ·
+              <a routerLink="/admin/veiculos" (click)="entry.set(false)">Cadastrar veículo</a>
             </p>
             <div class="wide">
               <div class="field-label" style="margin-bottom:10px">Serviços solicitados *</div>

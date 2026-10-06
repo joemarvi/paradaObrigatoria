@@ -14,7 +14,7 @@ import { Notifications, friendlyError } from '../core/notifications';
     }
     <aside class="sidebar" [class.open]="menu()">
       <a
-        routerLink="/dashboard"
+        routerLink="/admin/dashboard"
         class="brand brand-sidebar"
         aria-label="Parada Obrigatória — início"
       >
@@ -33,7 +33,10 @@ import { Notifications, friendlyError } from '../core/notifications';
         @for (item of nav; track item.path) {
           @if (!item.manager || auth.allows(['administrador', 'gerente'])) {
             @if (auth.role() !== 'operador' || item.path === 'fila') {
-              <a [routerLink]="'/' + item.path" routerLinkActive="active" (click)="menu.set(false)"
+              <a
+                [routerLink]="'/admin/' + item.path"
+                routerLinkActive="active"
+                (click)="menu.set(false)"
                 ><app-icon [name]="item.icon" /><span>{{ item.label }}</span>
                 @if (item.path === 'fila') {
                   <span class="nav-count" aria-hidden="true">{{ activeOrders() }}</span>
