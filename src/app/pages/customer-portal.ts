@@ -35,7 +35,7 @@ import { friendlyError } from '../core/notifications';
       <p role="status">Carregando…</p>
     } @else if (!auth.customer()) {
       <section class="panel portal-card">
-        <h1>Complete seu cadastro</h1>
+        <h1>Complete seu Cadastro</h1>
         <p>Informe seus dados para liberar seus agendamentos.</p>
         <form [formGroup]="accessForm" (ngSubmit)="complete()">
           <label

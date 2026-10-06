@@ -104,7 +104,7 @@ import { Icon } from '../shared/ui';
         <li>
           <span>01</span>
           <div>
-            <h3>Crie sua conta</h3>
+            <h3>Crie sua Conta</h3>
             <p>Cadastre seus dados e entre na área do cliente.</p>
           </div>
         </li>

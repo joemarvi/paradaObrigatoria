@@ -8,7 +8,7 @@ import { friendlyError } from '../core/notifications';
   template: `<main class="customer-portal">
     <header class="portal-header"><a routerLink="/">Parada Obrigatória · Voltar à home</a></header>
     <section class="panel portal-card">
-      <h1>{{ auth.recovery() ? 'Defina sua nova senha' : 'Recuperar acesso' }}</h1>
+      <h1>{{ auth.recovery() ? 'Defina sua Nova Senha' : 'Recuperar Acesso' }}</h1>
       <form [formGroup]="form" (ngSubmit)="submit()">
         @if (auth.recovery()) {
           <label

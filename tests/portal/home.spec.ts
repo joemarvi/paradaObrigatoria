@@ -86,7 +86,7 @@ test('login, cadastro e acesso administrativo têm formulários e navegação se
   await expect(page.getByRole('button', { name: 'Entrar', exact: true })).toHaveCount(0);
   await expect(page.locator('a[href^="/admin"]')).toHaveCount(0);
   await page.goto('/cliente/recuperar');
-  await expect(page.getByRole('heading', { name: 'Recuperar acesso' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Recuperar Acesso' })).toBeVisible();
   await expect(page.locator('a[href^="/admin"]')).toHaveCount(0);
   await page.goto('/admin/login');
   await expect(page.getByRole('heading', { name: 'Entre na sua conta' })).toBeVisible();
@@ -109,7 +109,7 @@ test('cadastro compacto sem navbar ou rolagem e botões de acesso adjacentes', a
     page.locator('.home-nav-access').getByRole('link', { name: 'Agendar', exact: true }),
   ).toBeVisible();
   await page.goto('/cliente/cadastro');
-  await expect(page.getByRole('heading', { name: 'Crie sua conta' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Crie sua Conta' })).toBeVisible();
   await expect(page.locator('nav, .portal-header')).toHaveCount(0);
   for (const [width, height] of [
     [1440, 900],

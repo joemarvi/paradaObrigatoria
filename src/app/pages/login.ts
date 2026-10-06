@@ -31,9 +31,9 @@ import { Icon } from '../shared/ui';
         <h2>
           {{
             auth.recovery()
-              ? 'Defina sua nova senha'
+              ? 'Defina sua Nova Senha'
               : recovering()
-                ? 'Recuperar acesso'
+                ? 'Recuperar Acesso'
                 : 'Entre na sua conta'
           }}
         </h2>

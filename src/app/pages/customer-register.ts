@@ -12,7 +12,7 @@ import { friendlyError } from '../core/notifications';
         ><img src="brand-logo.png" width="64" height="64" alt="Parada Obrigatória"
       /></a>
       <span class="eyebrow">SEU PRÓXIMO CUIDADO COMEÇA AQUI</span>
-      <h1>Crie sua conta</h1>
+      <h1>Crie sua Conta</h1>
       <p>Seu veículo bem cuidado, seu agendamento em poucos passos.</p>
       @if (message()) {
         <p class="alert success" role="status">{{ message() }}</p>
