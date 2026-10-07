@@ -1,10 +1,11 @@
+import { EmailInputDirective } from '../shared/input-mask';
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Auth } from '../core/auth';
 import { friendlyError } from '../core/notifications';
 @Component({
-  imports: [RouterLink, ReactiveFormsModule],
+  imports: [EmailInputDirective, RouterLink, ReactiveFormsModule],
   template: `<main class="customer-portal">
     <header class="portal-header"><a routerLink="/">Parada Obrigatória · Voltar à home</a></header>
     <section class="panel portal-card">
@@ -13,13 +14,22 @@ import { friendlyError } from '../core/notifications';
         @if (auth.recovery()) {
           <label
             >Nova senha<input
-              type="password"
+              [type]="showPassword() ? 'text' : 'password'"
               formControlName="password"
               autocomplete="new-password"
               placeholder="Mínimo de 8 caracteres"
           /></label>
         } @else {
           <label>E-mail<input type="email" formControlName="email" autocomplete="email" /></label>
+        }
+        @if (auth.recovery()) {
+          <label class="password-toggle"
+            ><input
+              type="checkbox"
+              [checked]="showPassword()"
+              (change)="showPassword.set($any($event.target).checked)"
+            />Mostrar senha</label
+          >
         }
         @if (error()) {
           <p class="form-error" role="alert">{{ error() }}</p>
@@ -40,6 +50,7 @@ import { friendlyError } from '../core/notifications';
 export class CustomerRecovery {
   readonly auth = inject(Auth);
   readonly fb = inject(FormBuilder);
+  readonly showPassword = signal(false);
   readonly busy = signal(false);
   readonly error = signal('');
   readonly message = signal('');

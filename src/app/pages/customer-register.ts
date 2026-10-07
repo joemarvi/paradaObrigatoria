@@ -1,3 +1,5 @@
+import { NumericInputDirective } from '../shared/numeric-input';
+import { InputMaskDirective, EmailInputDirective } from '../shared/input-mask';
 import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -5,7 +7,13 @@ import { Auth } from '../core/auth';
 import { phoneValidator } from '../core/domain';
 import { friendlyError } from '../core/notifications';
 @Component({
-  imports: [RouterLink, ReactiveFormsModule],
+  imports: [
+    NumericInputDirective,
+    InputMaskDirective,
+    EmailInputDirective,
+    RouterLink,
+    ReactiveFormsModule,
+  ],
   template: `<main class="customer-signup-page">
     <section class="customer-signup-card">
       <a routerLink="/" class="customer-signup-brand" aria-label="Voltar à home"
@@ -29,17 +37,24 @@ import { friendlyError } from '../core/notifications';
             ><label>E-mail<input type="email" formControlName="email" autocomplete="email" /></label
             ><label
               >Senha<input
-                type="password"
+                [type]="showPassword() ? 'text' : 'password'"
                 formControlName="password"
                 autocomplete="new-password"
                 placeholder="Mínimo de 8 caracteres" /></label
             ><label
               >Confirme sua senha<input
-                type="password"
+                [type]="showPassword() ? 'text' : 'password'"
                 formControlName="confirmation"
                 autocomplete="new-password"
             /></label>
           </div>
+          <label class="password-toggle"
+            ><input
+              type="checkbox"
+              [checked]="showPassword()"
+              (change)="showPassword.set($any($event.target).checked)"
+            />Mostrar senhas</label
+          >
           @if (error()) {
             <p class="form-error" role="alert">{{ error() }}</p>
           }
@@ -61,6 +76,7 @@ export class CustomerRegister {
   readonly auth = inject(Auth);
   readonly router = inject(Router);
   readonly fb = inject(FormBuilder);
+  readonly showPassword = signal(false);
   readonly busy = signal(false);
   readonly error = signal('');
   readonly message = signal('');

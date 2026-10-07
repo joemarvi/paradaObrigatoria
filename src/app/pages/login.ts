@@ -1,3 +1,4 @@
+import { EmailInputDirective } from '../shared/input-mask';
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -7,7 +8,7 @@ import { friendlyError } from '../core/notifications';
 import { Icon } from '../shared/ui';
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, Icon],
+  imports: [EmailInputDirective, ReactiveFormsModule, Icon],
   template: `<main class="login-page">
     <section class="login-story">
       <span class="login-brand-name">Lava Jato · Parada Obrigatória</span>
@@ -50,18 +51,27 @@ import { Icon } from '../shared/ui';
               type="email"
               formControlName="email"
               autocomplete="username"
-              placeholder="seu@email.com"
+              placeholder="@teste.com"
           /></label>
         }
         @if (!recovering()) {
           <label
             >{{ auth.recovery() ? 'Nova senha' : 'Senha'
             }}<input
-              type="password"
+              [type]="showPassword() ? 'text' : 'password'"
               formControlName="password"
               [attr.autocomplete]="auth.recovery() ? 'new-password' : 'current-password'"
               placeholder="Mínimo de 8 caracteres"
           /></label>
+        }
+        @if (!recovering()) {
+          <label class="password-toggle"
+            ><input
+              type="checkbox"
+              [checked]="showPassword()"
+              (change)="showPassword.set($any($event.target).checked)"
+            />Mostrar senha</label
+          >
         }
         @if (error()) {
           <p class="form-error" role="alert">{{ error() }}</p>
@@ -115,6 +125,7 @@ export class Login {
     password: ['', [Validators.required, Validators.minLength(8)]],
   });
   readonly recovering = signal(false);
+  readonly showPassword = signal(false);
   readonly busy = signal(false);
   readonly error = signal('');
   readonly message = signal('');

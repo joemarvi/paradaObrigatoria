@@ -1,3 +1,4 @@
+import { NumericInputDirective } from '../shared/numeric-input';
 import { Component, computed, inject, signal } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -10,7 +11,17 @@ import { Badge, Empty, Icon, Modal } from '../shared/ui';
 import { Notifications } from '../core/notifications';
 @Component({
   selector: 'app-orders',
-  imports: [CurrencyPipe, DatePipe, RouterLink, ReactiveFormsModule, Badge, Empty, Icon, Modal],
+  imports: [
+    NumericInputDirective,
+    CurrencyPipe,
+    DatePipe,
+    RouterLink,
+    ReactiveFormsModule,
+    Badge,
+    Empty,
+    Icon,
+    Modal,
+  ],
   template: `
     <div class="page-header">
       <div>

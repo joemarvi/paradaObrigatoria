@@ -1,3 +1,5 @@
+import { NumericInputDirective } from '../shared/numeric-input';
+import { InputMaskDirective } from '../shared/input-mask';
 import { Component, effect, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -9,7 +11,15 @@ import { Profile, Role } from '../core/models';
 import { Icon, Modal } from '../shared/ui';
 @Component({
   selector: 'app-settings',
-  imports: [ReactiveFormsModule, RouterLink, DatePipe, Icon, Modal],
+  imports: [
+    NumericInputDirective,
+    InputMaskDirective,
+    ReactiveFormsModule,
+    RouterLink,
+    DatePipe,
+    Icon,
+    Modal,
+  ],
   template: `<div class="page-header">
       <div>
         <span class="eyebrow">DO SEU JEITO</span>

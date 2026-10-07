@@ -1,10 +1,11 @@
+import { EmailInputDirective } from '../shared/input-mask';
 import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Auth } from '../core/auth';
 import { friendlyError } from '../core/notifications';
 @Component({
-  imports: [RouterLink, ReactiveFormsModule],
+  imports: [EmailInputDirective, RouterLink, ReactiveFormsModule],
   template: `<main class="customer-login-page">
     <section class="customer-login-card">
       <a class="customer-login-brand" routerLink="/" aria-label="Voltar à home"
@@ -16,8 +17,18 @@ import { friendlyError } from '../core/notifications';
       <form [formGroup]="form" (ngSubmit)="submit()">
         <label>E-mail<input type="email" formControlName="email" autocomplete="username" /></label
         ><label
-          >Senha<input type="password" formControlName="password" autocomplete="current-password"
+          >Senha<input
+            [type]="showPassword() ? 'text' : 'password'"
+            formControlName="password"
+            autocomplete="current-password"
         /></label>
+        <label class="password-toggle"
+          ><input
+            type="checkbox"
+            [checked]="showPassword()"
+            (change)="showPassword.set($any($event.target).checked)"
+          />Mostrar senha</label
+        >
         @if (error()) {
           <p class="form-error" role="alert">{{ error() }}</p>
         }
@@ -39,6 +50,7 @@ export class CustomerLogin {
   readonly auth = inject(Auth);
   readonly router = inject(Router);
   readonly fb = inject(FormBuilder);
+  readonly showPassword = signal(false);
   readonly busy = signal(false);
   readonly error = signal('');
   readonly form = this.fb.nonNullable.group({

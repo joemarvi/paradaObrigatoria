@@ -1,3 +1,4 @@
+import { NumericInputDirective } from '../shared/numeric-input';
 import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -7,7 +8,7 @@ import { businessDate, dateTimeToISO } from '../core/domain';
 import { Badge, Empty, Icon, Modal } from '../shared/ui';
 @Component({
   selector: 'app-appointments',
-  imports: [DatePipe, ReactiveFormsModule, Badge, Empty, Icon, Modal],
+  imports: [NumericInputDirective, DatePipe, ReactiveFormsModule, Badge, Empty, Icon, Modal],
   template: `<div class="page-header">
       <div>
         <span class="eyebrow">PLANEJE O DIA</span>

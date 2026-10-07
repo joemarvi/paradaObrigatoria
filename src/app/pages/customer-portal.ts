@@ -1,3 +1,5 @@
+import { NumericInputDirective } from '../shared/numeric-input';
+import { InputMaskDirective } from '../shared/input-mask';
 import { Component, inject, signal } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -9,7 +11,14 @@ import { dateTimeToISO, phoneValidator } from '../core/domain';
 import { friendlyError } from '../core/notifications';
 @Component({
   selector: 'app-customer-portal',
-  imports: [ReactiveFormsModule, RouterLink, CurrencyPipe, DatePipe],
+  imports: [
+    NumericInputDirective,
+    InputMaskDirective,
+    ReactiveFormsModule,
+    RouterLink,
+    CurrencyPipe,
+    DatePipe,
+  ],
   template: `<main class="customer-portal">
     <header class="portal-header">
       <a routerLink="/" class="brand"
@@ -70,7 +79,11 @@ import { friendlyError } from '../core/notifications';
           @if (addingVehicle()) {
             <form [formGroup]="vehicleForm" (ngSubmit)="addVehicle()">
               <label
-                >Placa<input formControlName="plate" maxlength="8" placeholder="ABC1D23"
+                >Placa<input
+                  appInputMask="plate"
+                  formControlName="plate"
+                  maxlength="8"
+                  placeholder="ABC1D23"
               /></label>
               <label
                 >Marca<input formControlName="brand" list="portal-brands" maxlength="80"

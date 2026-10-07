@@ -1,3 +1,4 @@
+import { NumericInputDirective } from '../shared/numeric-input';
 import { Component, computed, inject, signal } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -8,7 +9,16 @@ import { businessDate, moneyValidator, validatePayment } from '../core/domain';
 import { Empty, Icon, Modal } from '../shared/ui';
 @Component({
   selector: 'app-finance',
-  imports: [CurrencyPipe, DatePipe, RouterLink, ReactiveFormsModule, Empty, Icon, Modal],
+  imports: [
+    NumericInputDirective,
+    CurrencyPipe,
+    DatePipe,
+    RouterLink,
+    ReactiveFormsModule,
+    Empty,
+    Icon,
+    Modal,
+  ],
   template: `<div class="page-header">
       <div>
         <span class="eyebrow">CONTROLE FINANCEIRO</span>

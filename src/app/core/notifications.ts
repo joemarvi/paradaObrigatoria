@@ -12,7 +12,15 @@ export class Notifications {
   }
 }
 export function friendlyError(error: unknown): string {
-  const e = error as { code?: string; message?: string };
+  const e = error as { code?: string; message?: string; status?: number };
+  if (e.status && e.status >= 500)
+    return 'Não foi possível concluir a operação porque o serviço está com uma falha interna. Tente novamente mais tarde.';
+  if (e.code === 'over_email_send_rate_limit' || /email rate limit exceeded/i.test(e.message ?? ''))
+    return 'O limite de envio de e-mails foi atingido. Tente novamente mais tarde ou entre em contato com o atendimento.';
+  if (e.code === 'over_request_rate_limit')
+    return 'Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente novamente.';
+  if (e.code === 'email_address_not_authorized')
+    return 'O envio de e-mail para este endereço ainda não está disponível. Entre em contato com o atendimento.';
   if (e.code === '23505')
     return 'Já existe um registro com esses dados. Verifique a placa, documento ou caixa aberto.';
   if (e.code === '42501') return 'Seu perfil não tem permissão para esta operação.';

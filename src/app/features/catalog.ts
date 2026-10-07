@@ -1,3 +1,5 @@
+import { NumericInputDirective } from '../shared/numeric-input';
+import { InputMaskDirective } from '../shared/input-mask';
 import { alphabetical, VEHICLE_BRANDS, VEHICLE_COLORS } from '../core/vehicle-options';
 import { Component, OnDestroy, computed, effect, inject, signal, untracked } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
@@ -122,7 +124,17 @@ const CONFIG: Record<string, CatalogConfig> = {
 };
 @Component({
   selector: 'app-catalog',
-  imports: [ReactiveFormsModule, CurrencyPipe, DatePipe, Empty, Icon, Modal, Badge],
+  imports: [
+    NumericInputDirective,
+    InputMaskDirective,
+    ReactiveFormsModule,
+    CurrencyPipe,
+    DatePipe,
+    Empty,
+    Icon,
+    Modal,
+    Badge,
+  ],
   template: `
     <div class="page-header">
       <div>
@@ -261,8 +273,29 @@ const CONFIG: Record<string, CatalogConfig> = {
                   </select>
                 } @else {
                   <input
+                    [appInputMask]="
+                      field.type === 'tel'
+                        ? 'phone'
+                        : field.key === 'document'
+                          ? 'document'
+                          : field.key === 'plate'
+                            ? 'plate'
+                            : ''
+                    "
                     [id]="'catalog-' + field.key"
                     [formControlName]="field.key"
+                    [attr.inputmode]="
+                      field.type === 'email'
+                        ? 'email'
+                        : field.type === 'number'
+                          ? 'decimal'
+                          : field.type === 'tel' || field.key === 'document'
+                            ? 'numeric'
+                            : null
+                    "
+                    [attr.autocapitalize]="field.type === 'email' ? 'none' : null"
+                    [attr.autocorrect]="field.type === 'email' ? 'off' : null"
+                    [attr.spellcheck]="field.type === 'email' ? 'false' : null"
                     [attr.list]="field.suggestions ? 'catalog-options-' + field.key : null"
                     [type]="field.type ?? 'text'"
                     [attr.step]="
