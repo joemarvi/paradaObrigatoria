@@ -46,8 +46,11 @@ export class NumericInputDirective {
       event.inputType === 'insertText' &&
       event.data &&
       !this.allowed(event.data)
-    )
+    ) {
+      // Let the mask clean mixed text inserted by autofill or a paste operation.
+      if (this.element.nativeElement.type !== 'number' && /\d/.test(event.data)) return;
       event.preventDefault();
+    }
   }
   onPaste(event: ClipboardEvent): void {
     const element = this.element.nativeElement;
