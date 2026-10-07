@@ -33,8 +33,21 @@ import { friendlyError } from '../core/notifications';
                 formControlName="name"
                 autocomplete="name"
                 maxlength="120" /></label
-            ><label>Telefone<input type="tel" formControlName="phone" autocomplete="tel" /></label
-            ><label>E-mail<input type="email" formControlName="email" autocomplete="email" /></label
+            ><label
+              >Telefone<input
+                type="tel"
+                appInputMask="phone"
+                formControlName="phone"
+                autocomplete="tel"
+                inputmode="numeric"
+                placeholder="(00) 00000-0000" /></label
+            ><label
+              >E-mail<input
+                type="email"
+                formControlName="email"
+                autocomplete="email"
+                inputmode="email"
+                placeholder="@teste.com" /></label
             ><label
               >Senha<input
                 [type]="showPassword() ? 'text' : 'password'"
