@@ -1,6 +1,6 @@
 import { NumericInputDirective } from '../shared/numeric-input';
 import { InputMaskDirective } from '../shared/input-mask';
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -160,7 +160,7 @@ import { friendlyError } from '../core/notifications';
       </div>
       <section class="panel portal-section">
         <h2>Meus agendamentos</h2>
-        @for (a of appointments(); track a.id) {
+        @for (a of visibleAppointments(); track a.id) {
           <article class="portal-appointment">
             <div>
               <strong>{{ a.starts_at | date: 'dd/MM/yyyy HH:mm' : '-0300' }}</strong>
@@ -205,6 +205,9 @@ export class CustomerPortal {
   readonly vehicles = signal<Vehicle[]>([]);
   readonly services = signal<Service[]>([]);
   readonly appointments = signal<Appointment[]>([]);
+  readonly visibleAppointments = computed(() =>
+    this.appointments().filter((appointment) => appointment.status !== 'CANCELADO'),
+  );
   readonly labels = STATUS_LABELS;
   readonly brands = VEHICLE_BRANDS;
   readonly colors = VEHICLE_COLORS;
@@ -275,6 +278,7 @@ export class CustomerPortal {
         .client!.from('appointments')
         .select('*')
         .eq('customer_id', id)
+        .neq('status', 'CANCELADO')
         .order('starts_at', { ascending: false }),
     ]);
     for (const result of results) if (result.error) throw result.error;
@@ -282,7 +286,9 @@ export class CustomerPortal {
     this.services.set(
       (results[1].data as Service[]).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')),
     );
-    this.appointments.set(results[2].data as Appointment[]);
+    this.appointments.set(
+      (results[2].data as Appointment[]).filter((appointment) => appointment.status !== 'CANCELADO'),
+    );
   }
   async complete() {
     const v = this.accessForm.getRawValue();
