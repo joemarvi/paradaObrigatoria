@@ -1,6 +1,10 @@
+import { environment } from '../core/environment';
+import { BookingPayment, bookingPaymentLabel } from '../core/booking-payment';
+import { Notifications } from '../core/notifications';
+import { Feedback } from '../shared/feedback';
 import { NumericInputDirective } from '../shared/numeric-input';
-import { Component, computed, inject, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { Component, computed, effect, inject, signal } from '@angular/core';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Store } from '../core/store';
 import { Appointment, AppointmentStatus, STATUS_LABELS } from '../core/models';
@@ -8,7 +12,17 @@ import { businessDate, dateTimeToISO } from '../core/domain';
 import { Badge, Empty, Icon, Modal } from '../shared/ui';
 @Component({
   selector: 'app-appointments',
-  imports: [NumericInputDirective, DatePipe, ReactiveFormsModule, Badge, Empty, Icon, Modal],
+  imports: [
+    Feedback,
+    NumericInputDirective,
+    DatePipe,
+    CurrencyPipe,
+    ReactiveFormsModule,
+    Badge,
+    Empty,
+    Icon,
+    Modal,
+  ],
   template: `<div class="page-header">
       <div>
         <span class="eyebrow">PLANEJE O DIA</span>
@@ -35,6 +49,43 @@ import { Badge, Empty, Icon, Modal } from '../shared/ui';
         ><button [class.active]="mode() === 'list'" (click)="mode.set('list')">Lista</button>
       </div>
     </div>
+    <div class="appointment-status-filters" aria-label="Status dos Agendamentos">
+      <button
+        class="button"
+        [class.primary]="statusFilter() === 'all'"
+        (click)="statusFilter.set('all')"
+        [attr.aria-pressed]="statusFilter() === 'all'"
+      >
+        Todos
+      </button>
+      <button
+        class="button"
+        [class.primary]="statusFilter() === 'AGENDADO'"
+        (click)="statusFilter.set('AGENDADO')"
+        [attr.aria-pressed]="statusFilter() === 'AGENDADO'"
+      >
+        Pendentes <strong>{{ countForDay('AGENDADO') }}</strong>
+      </button>
+      <button
+        class="button"
+        [class.primary]="statusFilter() === 'CONFIRMADO'"
+        (click)="statusFilter.set('CONFIRMADO')"
+        [attr.aria-pressed]="statusFilter() === 'CONFIRMADO'"
+      >
+        Confirmados <strong>{{ countForDay('CONFIRMADO') }}</strong>
+      </button>
+      <button
+        class="button"
+        [class.primary]="statusFilter() === 'CANCELADO'"
+        (click)="statusFilter.set('CANCELADO')"
+        [attr.aria-pressed]="statusFilter() === 'CANCELADO'"
+      >
+        Cancelados <strong>{{ countForDay('CANCELADO') }}</strong>
+      </button>
+    </div>
+    <p class="help appointment-day-summary">
+      Contagens do dia selecionado, no horário de Brasília.
+    </p>
     <section class="panel">
       @if (mode() === 'week') {
         <div class="calendar-week">
@@ -83,7 +134,23 @@ import { Badge, Empty, Icon, Modal } from '../shared/ui';
                 {{ a.duration_minutes }} min
               </p>
               <app-badge [status]="a.status" />
+              @if (paymentFor(a.id); as payment) {
+                <p class="portal-payment-status">{{ paymentLabel(payment) }}</p>
+                <p class="help">
+                  {{ payment.method }} · {{ payment.amount | currency: 'BRL' }} ·
+                  {{ payment.live_mode ? 'Cobrança Real' : 'Simulação de Teste' }}
+                </p>
+              }
             </div>
+            @if (a.status === 'AGENDADO' && paymentFor(a.id)?.status !== 'PENDING') {
+              <button
+                class="button small primary"
+                (click)="confirmation.set(a)"
+                [disabled]="store.busy()"
+              >
+                Confirmar
+              </button>
+            }
             <button class="button small" (click)="open(a)">Editar / remarcar</button>
           </article>
         } @empty {
@@ -143,7 +210,7 @@ import { Badge, Empty, Icon, Modal } from '../shared/ui';
             ><label class="wide">Observações<textarea formControlName="notes"></textarea></label>
           </div>
           @if (error()) {
-            <p class="form-error" role="alert">{{ error() }}</p>
+            <app-feedback [message]="error()" kind="error" (dismissed)="error.set('')" />
           }
           <p class="help" style="margin-top:15px">
             Horários no fuso de Brasília. A capacidade do horário é validada pelo banco.
@@ -160,10 +227,36 @@ import { Badge, Empty, Icon, Modal } from '../shared/ui';
         </form></app-modal
       >
     }
+    @if (confirmation(); as appointment) {
+      <app-modal title="Confirmar Agendamento" (dismiss)="confirmation.set(null)"
+        ><div class="modal-content">
+          <p>
+            Confirmar o atendimento de {{ store.customer(appointment.customer_id) }} em
+            {{ appointment.starts_at | date: 'dd/MM/yyyy HH:mm' : '-0300' }}?
+          </p>
+          <div class="form-actions">
+            <button class="button" (click)="confirmation.set(null)">Voltar</button
+            ><button
+              class="button primary"
+              (click)="confirmAppointment()"
+              [disabled]="store.busy()"
+            >
+              Confirmar Agendamento
+            </button>
+          </div>
+        </div></app-modal
+      >
+    }
     @if (confirmCancel()) {
       <app-modal title="Confirmar cancelamento" (dismiss)="confirmCancel.set(false)"
         ><div class="modal-content">
           <p>Deseja cancelar este agendamento?</p>
+          @if (paymentFor(editingId() || '')?.status === 'APPROVED') {
+            <p>
+              O cancelamento não reembolsa o pagamento automaticamente. Revise o pagamento no
+              Mercado Pago e providencie o reembolso aplicável.
+            </p>
+          }
           <div class="form-actions">
             <button class="button" (click)="confirmCancel.set(false)">Voltar</button
             ><button class="button danger" [disabled]="store.busy()" (click)="cancelAppointment()">
@@ -175,11 +268,42 @@ import { Badge, Empty, Icon, Modal } from '../shared/ui';
     } `,
 })
 export class Appointments {
+  readonly payments = signal<BookingPayment[]>([]);
+  readonly paymentLabel = bookingPaymentLabel;
+  paymentFor(id: string) {
+    return this.payments().find((p) => p.appointment_id === id);
+  }
+  constructor() {
+    effect((onCleanup) => {
+      const ids = this.store.db().appointments.map((a) => a.id);
+      if (!environment.onlinePayments || !this.store.auth.client || !ids.length) return;
+      let current = true;
+      onCleanup(() => {
+        current = false;
+      });
+      void this.store.auth.client
+        .from('appointment_payments')
+        .select('appointment_id,method,amount,status,expires_at,live_mode')
+        .in('appointment_id', ids)
+        .then(({ data, error }) => {
+          if (!current) return;
+          if (error)
+            this.notices.show(
+              'Não foi possível consultar os pagamentos online. Atualize a agenda antes de confirmar.',
+              true,
+            );
+          else this.payments.set(data as BookingPayment[]);
+        });
+    });
+  }
+  readonly notices = inject(Notifications);
   readonly store = inject(Store);
   readonly fb = inject(FormBuilder);
   readonly today = businessDate();
   readonly date = signal(this.today);
   readonly mode = signal('day');
+  readonly statusFilter = signal<AppointmentStatus | 'all'>('all');
+  readonly confirmation = signal<Appointment | null>(null);
   readonly editing = signal(false);
   readonly editingId = signal<string | undefined>(undefined);
   readonly error = signal('');
@@ -207,6 +331,7 @@ export class Appointments {
   readonly shown = computed(() =>
     [...this.store.db().appointments]
       .filter((a) => this.mode() === 'list' || businessDate(a.starts_at) === this.date())
+      .filter((a) => this.statusFilter() === 'all' || a.status === this.statusFilter())
       .sort((a, b) => a.starts_at.localeCompare(b.starts_at)),
   );
   readonly week = computed(() => {
@@ -219,10 +344,29 @@ export class Appointments {
       return businessDate(d);
     });
   });
+  countForDay(status: AppointmentStatus) {
+    return this.store
+      .db()
+      .appointments.filter((a) => businessDate(a.starts_at) === this.date() && a.status === status)
+      .length;
+  }
+  async confirmAppointment() {
+    const selected = this.confirmation();
+    if (!selected) return;
+    const current = this.store.db().appointments.find((a) => a.id === selected.id);
+    if (!current || current.status !== 'AGENDADO') {
+      this.confirmation.set(null);
+      this.notices.show('Este agendamento não está mais pendente. Atualize a agenda.', true);
+      return;
+    }
+    if (await this.store.save('appointments', { status: 'CONFIRMADO' }, selected.id))
+      this.confirmation.set(null);
+  }
   forDay(day: string) {
     return this.store
       .db()
       .appointments.filter((a) => businessDate(a.starts_at) === day)
+      .filter((a) => this.statusFilter() === 'all' || a.status === this.statusFilter())
       .sort((a, b) => a.starts_at.localeCompare(b.starts_at));
   }
   service(id: string) {

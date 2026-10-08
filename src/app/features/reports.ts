@@ -1,3 +1,4 @@
+import { Feedback, PageLoading } from '../shared/feedback';
 import { Component, effect, inject, signal, untracked } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
@@ -9,8 +10,9 @@ import { STATUS_LABELS } from '../core/models';
 import { Empty, Icon } from '../shared/ui';
 @Component({
   selector: 'app-reports',
-  imports: [CurrencyPipe, ReactiveFormsModule, Empty, Icon],
-  template: `<div class="page-header">
+  imports: [Feedback, PageLoading, CurrencyPipe, ReactiveFormsModule, Empty, Icon],
+  template: `<app-page-loading [active]="loading()" />
+    <div class="page-header">
       <div>
         <span class="eyebrow">DECISÕES COM CLAREZA</span>
         <h1>Relatórios</h1>
@@ -37,7 +39,7 @@ import { Empty, Icon } from '../shared/ui';
       </div>
     </form>
     @if (error()) {
-      <p class="form-error" role="alert">{{ error() }}</p>
+      <app-feedback [message]="error()" kind="error" (dismissed)="error.set('')" />
     }
     @if (report(); as r) {
       <div class="metrics">

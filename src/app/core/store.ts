@@ -147,18 +147,26 @@ export class Store {
     return this.mutate(
       async () => {
         if (this.auth.demo()) {
-          const rows = this.demoData![table] as unknown as Row[];
-          if (id) {
-            const old = rows.find((r) => r['id'] === id);
-            if (!old) throw new Error('Registro não encontrado');
-            Object.assign(old, value, { updated_at: new Date().toISOString() });
-          } else
-            rows.unshift({
-              ...value,
-              id: crypto.randomUUID(),
-              created_at: new Date().toISOString(),
-            });
-          this.audit(table, id ?? String(rows[0]['id']), 'SALVAR');
+          const before = structuredClone(this.demoData);
+          try {
+            const rows = this.demoData![table] as unknown as Row[];
+            if (id) {
+              const old = rows.find((r) => r['id'] === id);
+              if (!old) throw new Error('Registro não encontrado');
+              Object.assign(old, value, { updated_at: new Date().toISOString() });
+            } else
+              rows.unshift({
+                ...value,
+                id: crypto.randomUUID(),
+                created_at: new Date().toISOString(),
+              });
+            const savedId = id ?? String(rows[0]['id']);
+            if (table === 'appointments') this.syncDemoAppointment(savedId);
+            this.audit(table, savedId, 'SALVAR');
+          } catch (error) {
+            this.demoData = before;
+            throw error;
+          }
           return;
         }
         const query = id
@@ -168,7 +176,9 @@ export class Store {
         if (error) throw error;
       },
       'Registro salvo.',
-      [table, 'parada_audit_logs'],
+      table === 'appointments'
+        ? ['appointments', 'work_orders', 'work_order_items', 'parada_audit_logs']
+        : [table, 'parada_audit_logs'],
     );
   }
   async rpc(name: string, args: Row): Promise<boolean> {
@@ -200,6 +210,7 @@ export class Store {
     try {
       await action();
       await this.load(tables);
+      if (this.failed()) return false;
       this.notices.show(message);
       return true;
     } catch (e) {
@@ -210,6 +221,47 @@ export class Store {
       return false;
     } finally {
       this.busy.set(false);
+    }
+  }
+  private syncDemoAppointment(id: string) {
+    const d = this.demoData!;
+    const appointment = d.appointments.find((a) => a.id === id)!;
+    const linked = d.work_orders.find((o) => o.appointment_id === id);
+    if (linked && appointment.status === 'CONFIRMADO') {
+      if (linked.status === 'CANCELADO')
+        throw new Error('Não é possível confirmar um agendamento com OS cancelada.');
+      if (linked.status === 'AGUARDANDO') {
+        linked.expected_at = new Date(
+          Date.parse(appointment.starts_at) + appointment.duration_minutes * 60000,
+        ).toISOString();
+        linked.notes = appointment.notes;
+      }
+    }
+    if (appointment.status === 'CONFIRMADO' && !linked) {
+      const existing = new Set(d.work_orders.map((o) => o.id));
+      this.demoRpc('create_work_order', {
+        payload: {
+          customer_id: appointment.customer_id,
+          vehicle_id: appointment.vehicle_id,
+          service_ids: [appointment.service_id],
+          discount: 0,
+          surcharge: 0,
+          notes: appointment.notes,
+          expected_at: new Date(
+            Date.parse(appointment.starts_at) + appointment.duration_minutes * 60000,
+          ).toISOString(),
+        },
+      });
+      d.work_orders.find((o) => !existing.has(o.id))!.appointment_id = id;
+    }
+    if (
+      linked &&
+      ['CANCELADO', 'NAO_COMPARECEU'].includes(appointment.status) &&
+      linked.status !== 'CANCELADO'
+    ) {
+      if (linked.status !== 'AGUARDANDO' || d.payments.some((p) => p.work_order_id === linked.id))
+        throw new Error('Esta ordem não pode ser cancelada.');
+      linked.status = 'CANCELADO';
     }
   }
   private audit(entity: string, id: string, action: string) {

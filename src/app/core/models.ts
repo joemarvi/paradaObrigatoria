@@ -55,6 +55,7 @@ export interface Employee extends Base {
   active: boolean;
 }
 export interface WorkOrder extends Base {
+  appointment_id?: string;
   number: number;
   customer_id: string;
   vehicle_id: string;

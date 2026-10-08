@@ -9,6 +9,7 @@
     "test": "node scripts/environment.mjs && ng test --watch=false",
     "lint": "eslint src scripts tests playwright.config.ts playwright.portal.config.ts",
     "test:e2e": "playwright test",
+    "test:payments": "node --test tests/payments.test.mjs",
     "test:db": "node tests/database.test.mjs",
     "test:portal": "node scripts/test-portal.mjs"
   },

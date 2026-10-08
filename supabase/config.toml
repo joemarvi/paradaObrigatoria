@@ -25,3 +25,9 @@ enable_signup = true
 double_confirm_changes = true
 enable_confirmations = true
 secure_password_change = true
+
+[functions.mercadopago-checkout]
+verify_jwt = false # The function validates the customer's JWT with auth.getUser.
+
+[functions.mercadopago-webhook]
+verify_jwt = false # Public callback; validates Mercado Pago's HMAC signature.

@@ -63,6 +63,16 @@ test('cliente vê somente reserva ativa mesmo quando a resposta contém cancelad
   await expect(page.getByRole('heading', { name: 'Meus Agendamentos' })).toBeVisible();
   await expect(page.getByText('Agendado', { exact: true })).toHaveCount(1);
   await expect(page.getByText('Cancelado', { exact: true })).toHaveCount(0);
+  const newBooking = page
+    .locator('.portal-welcome')
+    .getByRole('button', { name: 'Novo Agendamento' });
+  await newBooking.hover();
+  await expect(newBooking).toHaveCSS('background-color', 'rgb(0, 72, 127)');
+  await expect(newBooking).toHaveCSS('color', 'rgb(255, 255, 255)');
+  await newBooking.click();
+  await expect(page).toHaveURL(/\/cliente$/);
+  await expect(page.locator('#portal-booking')).toBeInViewport();
+  await expect(page.getByRole('combobox', { name: 'Veículo', exact: true })).toBeFocused();
   await page.getByRole('button', { name: 'Atualizar', exact: true }).click();
   await expect(page.getByText('Agendado', { exact: true })).toHaveCount(1);
   await expect(page.getByText('Cancelado', { exact: true })).toHaveCount(0);

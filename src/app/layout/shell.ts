@@ -1,3 +1,4 @@
+import { Feedback, PageLoading } from '../shared/feedback';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet, Router } from '@angular/router';
 import { DatePipe } from '@angular/common';
@@ -7,98 +8,107 @@ import { Icon } from '../shared/ui';
 import { Notifications, friendlyError } from '../core/notifications';
 @Component({
   selector: 'app-shell',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, Icon, DatePipe],
-  template: ` <div class="app-shell">
-    @if (menu()) {
-      <button class="sidebar-backdrop" aria-label="Fechar menu" (click)="menu.set(false)"></button>
-    }
-    <aside class="sidebar" [class.open]="menu()">
-      <a
-        routerLink="/admin/dashboard"
-        class="brand brand-sidebar"
-        aria-label="Parada Obrigatória — início"
-      >
-        <img
-          class="brand-logo"
-          src="brand-logo.png"
-          alt="Lava Jato Parada Obrigatória"
-          width="72"
-          height="72"
-          fetchpriority="high"
-        />
-        <small>GESTÃO DO LAVA-JATO</small>
-      </a>
-      <div class="nav-caption">OPERAÇÃO</div>
-      <nav aria-label="Navegação principal">
-        @for (item of nav; track item.path) {
-          @if (!item.manager || auth.allows(['administrador', 'gerente'])) {
-            @if (auth.role() !== 'operador' || item.path === 'fila') {
-              <a
-                [routerLink]="'/admin/' + item.path"
-                routerLinkActive="active"
-                (click)="menu.set(false)"
-                ><app-icon [name]="item.icon" /><span>{{ item.label }}</span>
-                @if (item.path === 'fila') {
-                  <span class="nav-count" aria-hidden="true">{{ activeOrders() }}</span>
-                }
-              </a>
+  imports: [Feedback, PageLoading, RouterLink, RouterLinkActive, RouterOutlet, Icon, DatePipe],
+  template: `<app-page-loading [active]="store.busy()" />
+    <div class="app-shell">
+      @if (menu()) {
+        <button
+          class="sidebar-backdrop"
+          aria-label="Fechar menu"
+          (click)="menu.set(false)"
+        ></button>
+      }
+      <aside class="sidebar" [class.open]="menu()">
+        <a
+          routerLink="/admin/dashboard"
+          class="brand brand-sidebar"
+          aria-label="Parada Obrigatória — início"
+        >
+          <img
+            class="brand-logo"
+            src="brand-logo.png"
+            alt="Lava Jato Parada Obrigatória"
+            width="72"
+            height="72"
+            fetchpriority="high"
+          />
+          <small>GESTÃO DO LAVA-JATO</small>
+        </a>
+        <div class="nav-caption">OPERAÇÃO</div>
+        <nav aria-label="Navegação principal">
+          @for (item of nav; track item.path) {
+            @if (!item.manager || auth.allows(['administrador', 'gerente'])) {
+              @if (auth.role() !== 'operador' || item.path === 'fila') {
+                <a
+                  [routerLink]="'/admin/' + item.path"
+                  routerLinkActive="active"
+                  (click)="menu.set(false)"
+                  ><app-icon [name]="item.icon" /><span>{{ item.label }}</span>
+                  @if (item.path === 'fila') {
+                    <span class="nav-count" aria-hidden="true">{{ activeOrders() }}</span>
+                  }
+                </a>
+              }
             }
           }
-        }
-      </nav>
-      <div class="sidebar-footer">
-        <span class="status-dot"></span
-        >{{ auth.demo() ? 'Ambiente de demonstração' : 'Conectado ao Supabase'
-        }}<small>Operação clara. Cuidado em cada detalhe.</small>
-      </div>
-    </aside>
-    <div class="workspace">
-      <header class="topbar">
-        <div class="topbar-start">
-          <button class="icon-button mobile-menu" aria-label="Abrir menu" (click)="menu.set(true)">
-            <app-icon name="menu" /></button
-          ><span class="breadcrumb">Parada Obrigatória <span>/</span> Gestão</span>
+        </nav>
+        <div class="sidebar-footer">
+          <span class="status-dot"></span
+          >{{ auth.demo() ? 'Ambiente de demonstração' : 'Conectado ao Supabase'
+          }}<small>Operação clara. Cuidado em cada detalhe.</small>
         </div>
-        <div class="topbar-end">
-          <span class="today">{{ today | date: 'EEE, dd MMM' : '-0300' }}</span>
-          <div class="user-avatar">{{ auth.name().slice(0, 1) }}</div>
-          <div class="user-info">
-            <strong>{{ auth.name() }}</strong
-            ><small>{{ auth.role() }}</small>
+      </aside>
+      <div class="workspace">
+        <header class="topbar">
+          <div class="topbar-start">
+            <button
+              class="icon-button mobile-menu"
+              aria-label="Abrir menu"
+              (click)="menu.set(true)"
+            >
+              <app-icon name="menu" /></button
+            ><span class="breadcrumb">Parada Obrigatória <span>/</span> Gestão</span>
           </div>
-          <button class="icon-button" title="Sair" aria-label="Sair" (click)="logout()">
-            <app-icon name="logout" />
-          </button>
-        </div>
-      </header>
-      @if (auth.demo()) {
-        <div class="demo-banner">
-          <app-icon name="shield" /> Demonstração • dados fictícios; alterações mantidas somente
-          nesta sessão.
-        </div>
-      }
-      @if (store.loading()) {
-        <div class="loading-bar" role="status" aria-label="Carregando dados"></div>
-      }
-      @if (store.failed()) {
-        <div class="alert danger">
-          Não foi possível carregar os dados.<button class="button small" (click)="store.load()">
-            Tentar novamente
-          </button>
-        </div>
-      }
-      @if (store.truncated().length) {
-        <div class="alert warning">
-          Parte dos registros ainda não foi carregada. Use “Carregar mais” nos cadastros. Relatórios
-          consultam o período diretamente.
-        </div>
-      }
-      <main id="main-content"><router-outlet /></main>
-      <footer class="page-footer">
-        Parada Obrigatória <span>Feito para cuidar da sua operação.</span>
-      </footer>
-    </div>
-  </div>`,
+          <div class="topbar-end">
+            <span class="today">{{ today | date: 'EEE, dd MMM' : '-0300' }}</span>
+            <div class="user-avatar">{{ auth.name().slice(0, 1) }}</div>
+            <div class="user-info">
+              <strong>{{ auth.name() }}</strong
+              ><small>{{ auth.role() }}</small>
+            </div>
+            <button class="icon-button" title="Sair" aria-label="Sair" (click)="logout()">
+              <app-icon name="logout" />
+            </button>
+          </div>
+        </header>
+        @if (auth.demo()) {
+          <div class="demo-banner">
+            <app-icon name="shield" /> Demonstração • dados fictícios; alterações mantidas somente
+            nesta sessão.
+          </div>
+        }
+        @if (store.loading()) {
+          <app-page-loading [active]="true" />
+        }
+        @if (store.failed()) {
+          <app-feedback kind="error">
+            Não foi possível carregar os dados.<button class="button small" (click)="store.load()">
+              Tentar novamente
+            </button>
+          </app-feedback>
+        }
+        @if (store.truncated().length) {
+          <app-feedback kind="warning">
+            Parte dos registros ainda não foi carregada. Use “Carregar mais” nos cadastros.
+            Relatórios consultam o período diretamente.
+          </app-feedback>
+        }
+        <main id="main-content"><router-outlet /></main>
+        <footer class="page-footer">
+          Parada Obrigatória <span>Feito para cuidar da sua operação.</span>
+        </footer>
+      </div>
+    </div>`,
 })
 export class Shell implements OnInit {
   readonly auth = inject(Auth);

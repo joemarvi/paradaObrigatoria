@@ -1,3 +1,4 @@
+import { Feedback } from '../shared/feedback';
 import { NumericInputDirective } from '../shared/numeric-input';
 import { Component, computed, inject, signal } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
@@ -10,6 +11,7 @@ import { Empty, Icon, Modal } from '../shared/ui';
 @Component({
   selector: 'app-finance',
   imports: [
+    Feedback,
     NumericInputDirective,
     CurrencyPipe,
     DatePipe,
@@ -75,7 +77,9 @@ import { Empty, Icon, Modal } from '../shared/ui';
       </article>
     </div>
     @if (!store.register()) {
-      <div class="alert warning">Abra o caixa antes de registrar pagamentos ou movimentações.</div>
+      <app-feedback kind="warning"
+        >Abra o caixa antes de registrar pagamentos ou movimentações.</app-feedback
+      >
     }
     <section class="panel" style="margin-bottom:24px">
       <div class="panel-header">
@@ -303,7 +307,7 @@ import { Empty, Icon, Modal } from '../shared/ui';
             O saldo será validado no banco. A OS será finalizada quando o total estiver pago.
           </p>
           @if (error()) {
-            <p class="form-error" role="alert">{{ error() }}</p>
+            <app-feedback [message]="error()" kind="error" (dismissed)="error.set('')" />
           }
           <div class="form-actions">
             <button type="button" class="button" (click)="payment.set(null)">Voltar</button
@@ -324,10 +328,10 @@ import { Empty, Icon, Modal } from '../shared/ui';
         (dismiss)="cashModal.set('')"
         ><form [formGroup]="cashForm" (ngSubmit)="cashAction()">
           @if (cashModal() === 'close') {
-            <div class="alert warning">
+            <app-feedback kind="warning">
               Saldo esperado em dinheiro: {{ store.balance() | currency: 'BRL' }}. Confira o
               dinheiro físico antes de fechar.
-            </div>
+            </app-feedback>
           }
           <div class="form-grid">
             @if (cashModal() === 'move') {
@@ -356,7 +360,7 @@ import { Empty, Icon, Modal } from '../shared/ui';
             }
           </div>
           @if (error()) {
-            <p class="form-error" role="alert">{{ error() }}</p>
+            <app-feedback [message]="error()" kind="error" (dismissed)="error.set('')" />
           }
           <div class="form-actions">
             <button type="button" class="button" (click)="cashModal.set('')">Voltar</button

@@ -1,3 +1,4 @@
+import { Feedback } from '../shared/feedback';
 import { NumericInputDirective } from '../shared/numeric-input';
 import { InputMaskDirective } from '../shared/input-mask';
 import { Component, effect, inject, signal } from '@angular/core';
@@ -12,6 +13,7 @@ import { Icon, Modal } from '../shared/ui';
 @Component({
   selector: 'app-settings',
   imports: [
+    Feedback,
     NumericInputDirective,
     InputMaskDirective,
     ReactiveFormsModule,
@@ -51,7 +53,7 @@ import { Icon, Modal } from '../shared/ui';
             >
           </div>
           @if (error()) {
-            <p class="form-error">{{ error() }}</p>
+            <app-feedback [message]="error()" kind="error" (dismissed)="error.set('')" />
           }
           <div class="form-actions">
             <button
@@ -176,9 +178,9 @@ import { Icon, Modal } from '../shared/ui';
     @if (profile(); as p) {
       <app-modal title="Editar permissão de acesso" (dismiss)="profile.set(null)"
         ><form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
-          <div class="alert warning">
+          <app-feedback kind="warning">
             As mudanças alteram o acesso de {{ p.name }} aos dados do sistema.
-          </div>
+          </app-feedback>
           <div class="form-grid">
             <label class="wide">Nome<input formControlName="name" /></label
             ><label class="wide"

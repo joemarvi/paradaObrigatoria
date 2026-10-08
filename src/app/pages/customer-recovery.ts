@@ -1,3 +1,4 @@
+import { Feedback, PageLoading } from '../shared/feedback';
 import { EmailInputDirective } from '../shared/input-mask';
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
@@ -5,47 +6,50 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Auth } from '../core/auth';
 import { friendlyError } from '../core/notifications';
 @Component({
-  imports: [EmailInputDirective, RouterLink, ReactiveFormsModule],
-  template: `<main class="customer-portal">
-    <header class="portal-header"><a routerLink="/">Parada Obrigatória · Voltar à home</a></header>
-    <section class="panel portal-card">
-      <h1>{{ auth.recovery() ? 'Defina sua Nova Senha' : 'Recuperar Acesso' }}</h1>
-      <form [formGroup]="form" (ngSubmit)="submit()">
-        @if (auth.recovery()) {
-          <label
-            >Nova senha<input
-              [type]="showPassword() ? 'text' : 'password'"
-              formControlName="password"
-              autocomplete="new-password"
-              placeholder="Mínimo de 8 caracteres"
-          /></label>
-        } @else {
-          <label>E-mail<input type="email" formControlName="email" autocomplete="email" /></label>
-        }
-        @if (auth.recovery()) {
-          <label class="password-toggle"
-            ><input
-              type="checkbox"
-              [checked]="showPassword()"
-              (change)="showPassword.set($any($event.target).checked)"
-            />Mostrar senha</label
+  imports: [Feedback, PageLoading, EmailInputDirective, RouterLink, ReactiveFormsModule],
+  template: `<app-page-loading [active]="busy() || !auth.initialized()" />
+    <main class="customer-portal">
+      <header class="portal-header">
+        <a routerLink="/">Parada Obrigatória · Voltar à home</a>
+      </header>
+      <section class="panel portal-card">
+        <h1>{{ auth.recovery() ? 'Defina sua Nova Senha' : 'Recuperar Acesso' }}</h1>
+        <form [formGroup]="form" (ngSubmit)="submit()">
+          @if (auth.recovery()) {
+            <label
+              >Nova senha<input
+                [type]="showPassword() ? 'text' : 'password'"
+                formControlName="password"
+                autocomplete="new-password"
+                placeholder="Mínimo de 8 caracteres"
+            /></label>
+          } @else {
+            <label>E-mail<input type="email" formControlName="email" autocomplete="email" /></label>
+          }
+          @if (auth.recovery()) {
+            <label class="password-toggle"
+              ><input
+                type="checkbox"
+                [checked]="showPassword()"
+                (change)="showPassword.set($any($event.target).checked)"
+              />Mostrar senha</label
+            >
+          }
+          @if (error()) {
+            <app-feedback [message]="error()" kind="error" (dismissed)="error.set('')" />
+          }
+          @if (message()) {
+            <app-feedback [message]="message()" kind="success" (dismissed)="message.set('')" />
+          }
+          <button
+            class="button primary full"
+            [disabled]="busy() || !auth.initialized() || !auth.client"
           >
-        }
-        @if (error()) {
-          <p class="form-error" role="alert">{{ error() }}</p>
-        }
-        @if (message()) {
-          <p class="alert success" role="status">{{ message() }}</p>
-        }
-        <button
-          class="button primary full"
-          [disabled]="busy() || !auth.initialized() || !auth.client"
-        >
-          {{ auth.recovery() ? 'Salvar nova senha' : 'Enviar link' }}</button
-        ><a routerLink="/cliente/entrar" class="text-button">Voltar ao login</a>
-      </form>
-    </section>
-  </main>`,
+            {{ auth.recovery() ? 'Salvar nova senha' : 'Enviar link' }}</button
+          ><a routerLink="/cliente/entrar" class="text-button">Voltar ao login</a>
+        </form>
+      </section>
+    </main>`,
 })
 export class CustomerRecovery {
   readonly auth = inject(Auth);

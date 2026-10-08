@@ -1,3 +1,4 @@
+import { Feedback, PageLoading } from '../shared/feedback';
 import { NumericInputDirective } from '../shared/numeric-input';
 import { InputMaskDirective, EmailInputDirective } from '../shared/input-mask';
 import { Component, inject, signal } from '@angular/core';
@@ -8,82 +9,85 @@ import { phoneValidator } from '../core/domain';
 import { friendlyError } from '../core/notifications';
 @Component({
   imports: [
+    Feedback,
+    PageLoading,
     NumericInputDirective,
     InputMaskDirective,
     EmailInputDirective,
     RouterLink,
     ReactiveFormsModule,
   ],
-  template: `<main class="customer-signup-page">
-    <section class="customer-signup-card">
-      <a routerLink="/" class="customer-signup-brand" aria-label="Voltar à home"
-        ><img src="brand-logo.png" width="64" height="64" alt="Parada Obrigatória"
-      /></a>
-      <span class="eyebrow">SEU PRÓXIMO CUIDADO COMEÇA AQUI</span>
-      <h1>Crie sua Conta</h1>
-      <p>Seu veículo bem cuidado, seu agendamento em poucos passos.</p>
-      @if (message()) {
-        <p class="alert success" role="status">{{ message() }}</p>
-        <a routerLink="/cliente/entrar" class="button primary">Entrar na minha conta</a>
-      } @else {
-        <form [formGroup]="form" (ngSubmit)="submit()">
-          <div class="customer-signup-fields">
-            <label
-              >Nome completo<input
-                formControlName="name"
-                autocomplete="name"
-                maxlength="120" /></label
-            ><label
-              >Telefone<input
-                type="tel"
-                appInputMask="phone"
-                formControlName="phone"
-                autocomplete="tel"
-                inputmode="numeric"
-                placeholder="(00) 00000-0000" /></label
-            ><label
-              >E-mail<input
-                type="email"
-                formControlName="email"
-                autocomplete="email"
-                inputmode="email"
-                placeholder="@teste.com" /></label
-            ><label
-              >Senha<input
-                [type]="showPassword() ? 'text' : 'password'"
-                formControlName="password"
-                autocomplete="new-password"
-                placeholder="Mínimo de 8 caracteres" /></label
-            ><label
-              >Confirme sua senha<input
-                [type]="showPassword() ? 'text' : 'password'"
-                formControlName="confirmation"
-                autocomplete="new-password"
-            /></label>
-          </div>
-          <label class="password-toggle"
-            ><input
-              type="checkbox"
-              [checked]="showPassword()"
-              (change)="showPassword.set($any($event.target).checked)"
-            />Mostrar senhas</label
-          >
-          @if (error()) {
-            <p class="form-error" role="alert">{{ error() }}</p>
-          }
-          <button
-            class="button primary full"
-            [disabled]="busy() || !auth.initialized() || !auth.client"
-          >
-            {{ busy() ? 'Aguarde…' : 'Criar conta' }}
-          </button>
-          <p class="customer-signup-login">
-            Já tem uma conta? <a routerLink="/cliente/entrar">Entrar</a>
-          </p>
-        </form>
-      }
-    </section>
-  </main>`,
+  template: `<app-page-loading [active]="busy() || !auth.initialized()" />
+    <main class="customer-signup-page">
+      <section class="customer-signup-card">
+        <a routerLink="/" class="customer-signup-brand" aria-label="Voltar à home"
+          ><img src="brand-logo.png" width="64" height="64" alt="Parada Obrigatória"
+        /></a>
+        <span class="eyebrow">SEU PRÓXIMO CUIDADO COMEÇA AQUI</span>
+        <h1>Crie sua Conta</h1>
+        <p>Seu veículo bem cuidado, seu agendamento em poucos passos.</p>
+        @if (message()) {
+          <app-feedback [message]="message()" kind="success" />
+          <a routerLink="/cliente/entrar" class="button primary">Entrar na minha conta</a>
+        } @else {
+          <form [formGroup]="form" (ngSubmit)="submit()">
+            <div class="customer-signup-fields">
+              <label
+                >Nome completo<input
+                  formControlName="name"
+                  autocomplete="name"
+                  maxlength="120" /></label
+              ><label
+                >Telefone<input
+                  type="tel"
+                  appInputMask="phone"
+                  formControlName="phone"
+                  autocomplete="tel"
+                  inputmode="numeric"
+                  placeholder="(00) 00000-0000" /></label
+              ><label
+                >E-mail<input
+                  type="email"
+                  formControlName="email"
+                  autocomplete="email"
+                  inputmode="email"
+                  placeholder="@teste.com" /></label
+              ><label
+                >Senha<input
+                  [type]="showPassword() ? 'text' : 'password'"
+                  formControlName="password"
+                  autocomplete="new-password"
+                  placeholder="Mínimo de 8 caracteres" /></label
+              ><label
+                >Confirme sua senha<input
+                  [type]="showPassword() ? 'text' : 'password'"
+                  formControlName="confirmation"
+                  autocomplete="new-password"
+              /></label>
+            </div>
+            <label class="password-toggle"
+              ><input
+                type="checkbox"
+                [checked]="showPassword()"
+                (change)="showPassword.set($any($event.target).checked)"
+              />Mostrar senhas</label
+            >
+            @if (error()) {
+              <app-feedback [message]="error()" kind="error" (dismissed)="error.set('')" />
+            }
+            <button
+              class="button primary full"
+              [disabled]="busy() || !auth.initialized() || !auth.client"
+            >
+              {{ busy() ? 'Aguarde…' : 'Criar conta' }}
+            </button>
+            <p class="customer-signup-login">
+              Já tem uma conta? <a routerLink="/cliente/entrar">Entrar</a>
+            </p>
+          </form>
+        }
+      </section>
+    </main>`,
 })
 export class CustomerRegister {
   readonly auth = inject(Auth);

@@ -1,3 +1,4 @@
+import { Feedback, PageLoading } from '../shared/feedback';
 import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -9,7 +10,7 @@ import { Notifications, friendlyError } from '../core/notifications';
 import { Badge, Empty, Icon } from '../shared/ui';
 @Component({
   selector: 'app-dashboard',
-  imports: [CurrencyPipe, DatePipe, RouterLink, Badge, Empty, Icon],
+  imports: [Feedback, PageLoading, CurrencyPipe, DatePipe, RouterLink, Badge, Empty, Icon],
   template: `
     <div class="page-header">
       <div>
@@ -188,18 +189,19 @@ import { Badge, Empty, Icon } from '../shared/ui';
         </div>
       </div>
       @if (!s.registerOpen) {
-        <div class="alert warning">
+        <app-feedback kind="warning">
           <span>O caixa está fechado. Abra para começar a receber pagamentos.</span
           ><a routerLink="/admin/caixa" class="text-button">Abrir caixa</a>
-        </div>
+        </app-feedback>
       }
     } @else {
-      <div class="panel loading-placeholder" role="status">
-        {{ failed() ? 'Não foi possível carregar os indicadores.' : 'Carregando indicadores…' }}
-        @if (failed()) {
-          <button class="button" (click)="refresh()">Tentar novamente</button>
-        }
-      </div>
+      @if (failed()) {
+        <app-feedback kind="error" message="Não foi possível carregar os indicadores."
+          ><button class="button" (click)="refresh()">Tentar Novamente</button></app-feedback
+        >
+      } @else {
+        <app-page-loading [active]="true" />
+      }
     }
     <div class="quick-links">
       <a routerLink="/admin/clientes" class="quick-link"

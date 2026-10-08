@@ -10,6 +10,7 @@ export default defineConfig({
       SUPABASE_URL: 'https://portal-test.supabase.co',
       SUPABASE_ANON_KEY: 'public-test-key',
       DEMO_MODE: 'false',
+      ONLINE_PAYMENTS_ENABLED: 'true',
     },
     url: 'http://127.0.0.1:4219',
     reuseExistingServer: false,

@@ -1,6 +1,7 @@
 import {
   AfterViewInit,
   Component,
+  Injectable,
   ElementRef,
   OnDestroy,
   inject,
@@ -54,6 +55,7 @@ export class Icon {
     plus: 'M12 5v14 M5 12h14',
     search: 'M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16 M17 17l4 4',
     arrow: 'M5 12h14 M14 7l5 5-5 5',
+    'chevron-down': 'M5 8.5L12 15.5L19 8.5',
     clock: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18 M12 7v5l3 2',
     check: 'M5 12l4 4L19 6',
     menu: 'M4 6h16 M4 12h16 M4 18h16',
@@ -86,6 +88,21 @@ export class Empty {
   readonly title = input('Nenhum registro encontrado');
   readonly description = input('Comece cadastrando um registro ou ajuste os filtros.');
 }
+@Injectable({ providedIn: 'root' })
+export class ModalScrollLock {
+  private count = 0;
+  private previous = '';
+  acquire() {
+    if (this.count++ === 0) {
+      this.previous = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+    }
+  }
+  release() {
+    if (this.count > 0 && --this.count === 0) document.body.style.overflow = this.previous;
+  }
+}
+
 @Component({
   selector: 'app-modal',
   imports: [Icon],
@@ -118,7 +135,8 @@ export class Modal implements AfterViewInit, OnDestroy {
   readonly dismiss = output<void>();
   private readonly element = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly previous = document.activeElement as HTMLElement | null;
-  private readonly overflow = document.body.style.overflow;
+  private readonly scrollLock = inject(ModalScrollLock);
+  private locked = false;
   private readonly keyHandler = (event: KeyboardEvent) => {
     if (event.key !== 'Tab') return;
     const items = Array.from(
@@ -140,7 +158,8 @@ export class Modal implements AfterViewInit, OnDestroy {
     }
   };
   ngAfterViewInit() {
-    document.body.style.overflow = 'hidden';
+    this.scrollLock.acquire();
+    this.locked = true;
     this.element.nativeElement.addEventListener('keydown', this.keyHandler);
     queueMicrotask(() =>
       this.element.nativeElement
@@ -149,7 +168,7 @@ export class Modal implements AfterViewInit, OnDestroy {
     );
   }
   ngOnDestroy() {
-    document.body.style.overflow = this.overflow;
+    if (this.locked) this.scrollLock.release();
     this.element.nativeElement.removeEventListener('keydown', this.keyHandler);
     this.previous?.focus();
   }

@@ -1,3 +1,4 @@
+import { webcrypto as crypto } from 'node:crypto';
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
@@ -18,7 +19,7 @@ async function asUser(id, role = 'authenticated') {
 }
 async function bootstrap(target) {
   await target.exec(
-    `create role anon;create role authenticated;create schema auth;create table auth.users(id uuid primary key);create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth,public to anon,authenticated;grant execute on function auth.uid() to anon,authenticated;alter default privileges in schema public grant all on tables to anon,authenticated;alter default privileges in schema public grant all on sequences to anon,authenticated;alter default privileges in schema public grant all on functions to anon,authenticated;`,
+    `create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key);create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth,public to anon,authenticated;grant execute on function auth.uid() to anon,authenticated;alter default privileges in schema public grant all on tables to anon,authenticated;alter default privileges in schema public grant all on sequences to anon,authenticated;alter default privileges in schema public grant all on functions to anon,authenticated;`,
   );
 }
 before(async () => {
@@ -571,6 +572,157 @@ test('outro cliente não lê nem cancela agendamentos alheios; equipe visualiza 
     /não pode ser cancelado/,
   );
 });
+let prepaidBooking;
+const prepaidRequest = '00000000-0000-4000-8000-000000000099';
+test('pré-pagamento usa preço do banco, preserva idempotência e isola acesso', async () => {
+  await asUser(portalUser);
+  const args = [portalVehicle, ids.service, 'PIX', prepaidRequest];
+  const sql =
+    "select public.portal_book_prepaid($1,$2,date_trunc('day',now())+interval '310 days 12 hours','',$3,$4) as id";
+  prepaidBooking = (await db.query(sql, args)).rows[0].id;
+  assert.equal((await db.query(sql, args)).rows[0].id, prepaidBooking);
+  const p = (
+    await db.query('select * from public.appointment_payments where appointment_id=$1', [
+      prepaidBooking,
+    ])
+  ).rows[0];
+  const service = (await db.query('select price from public.services where id=$1', [ids.service]))
+    .rows[0];
+  assert.equal(Number(p.amount), Number(service.price));
+  assert.equal(p.status, 'PENDING');
+  await assert.rejects(
+    db.query("update public.appointment_payments set status='APPROVED'"),
+    /permission denied/,
+  );
+  await assert.rejects(
+    db.query("select public.apply_booking_payment($1,'123','approved',$2,'BRL',false)", [
+      prepaidBooking,
+      p.amount,
+    ]),
+    /permission denied/,
+  );
+  await asUser(otherPortalUser);
+  assert.equal((await db.query('select * from public.appointment_payments')).rows.length, 0);
+  await asUser(ids.admin);
+  await assert.rejects(
+    db.query("update public.appointments set status='CONFIRMADO' where id=$1", [prepaidBooking]),
+    /Aguarde a aprovação/,
+  );
+});
+test('webhook valida valor/moeda/modo; aprovação confirma reserva e é idempotente', async () => {
+  await db.exec('reset role');
+  const p = (
+    await db.query('select * from public.appointment_payments where appointment_id=$1', [
+      prepaidBooking,
+    ])
+  ).rows[0];
+  const sql = "select public.apply_booking_payment($1,'123',$2,$3,$4,$5) as status";
+  for (const args of [
+    [prepaidBooking, 'approved', Number(p.amount) + 1, 'BRL', false],
+    [prepaidBooking, 'approved', p.amount, 'USD', false],
+    [prepaidBooking, 'approved', p.amount, 'BRL', true],
+  ])
+    await assert.rejects(db.query(sql, args), /incompatível/);
+  assert.equal(
+    (await db.query(sql, [prepaidBooking, 'approved', p.amount, 'BRL', false])).rows[0].status,
+    'APPROVED',
+  );
+  assert.equal(
+    (await db.query(sql, [prepaidBooking, 'approved', p.amount, 'BRL', false])).rows[0].status,
+    'APPROVED',
+  );
+  assert.equal(
+    (await db.query(sql, [prepaidBooking, 'pending', p.amount, 'BRL', false])).rows[0].status,
+    'APPROVED',
+  );
+  assert.equal(
+    (await db.query('select status from public.appointments where id=$1', [prepaidBooking])).rows[0]
+      .status,
+    'CONFIRMADO',
+  );
+  await asUser(portalUser);
+  await assert.rejects(
+    db.query('select public.portal_cancel($1)', [prepaidBooking]),
+    /Entre em contato/,
+  );
+  await asUser(ids.admin);
+  await assert.rejects(
+    db.query("update public.appointments set starts_at=starts_at+interval '1 hour' where id=$1", [
+      prepaidBooking,
+    ]),
+    /solicite revisão/,
+  );
+});
+test('checkout bloqueia criação concorrente e vencimento libera horário sem garantir aprovação tardia', async () => {
+  await asUser(portalUser);
+  const aid = (
+    await db.query(
+      "select public.portal_book_prepaid($1,$2,date_trunc('day',now())+interval '320 days 12 hours','','CREDITO',$3) as id",
+      [portalVehicle, ids.service, crypto.randomUUID()],
+    )
+  ).rows[0].id;
+  await db.exec('reset role');
+  assert.equal(
+    (await db.query('select public.claim_booking_checkout($1) as claimed', [aid])).rows[0].claimed,
+    true,
+  );
+  assert.equal(
+    (await db.query('select public.claim_booking_checkout($1) as claimed', [aid])).rows[0].claimed,
+    false,
+  );
+  await db.query(
+    "update public.appointment_payments set expires_at=now()-interval '1 second' where appointment_id=$1",
+    [aid],
+  );
+  await asUser(portalUser);
+  await db.query(
+    "select public.portal_book($1,$2,date_trunc('day',now())+interval '320 days 12 hours','')",
+    [portalVehicle, ids.service],
+  );
+  assert.equal(
+    (await db.query('select status from public.appointments where id=$1', [aid])).rows[0].status,
+    'CANCELADO',
+  );
+  await db.exec('reset role');
+  const amount = (
+    await db.query('select amount from public.appointment_payments where appointment_id=$1', [aid])
+  ).rows[0].amount;
+  assert.equal(
+    (
+      await db.query(
+        "select public.apply_booking_payment($1,'456','approved',$2,'BRL',false) as status",
+        [aid, amount],
+      )
+    ).rows[0].status,
+    'REVIEW',
+  );
+  assert.equal(
+    (await db.query('select status from public.appointments where id=$1', [aid])).rows[0].status,
+    'CANCELADO',
+  );
+});
+test('reembolso integral remove confirmação e não pode ser revertido por webhook antigo', async () => {
+  await db.exec('reset role');
+  const amount = (
+    await db.query('select amount from public.appointment_payments where appointment_id=$1', [
+      prepaidBooking,
+    ])
+  ).rows[0].amount;
+  const sql = "select public.apply_booking_payment($1,'123',$2,$3,'BRL',false) as status";
+  assert.equal(
+    (await db.query(sql, [prepaidBooking, 'refunded', amount])).rows[0].status,
+    'REFUNDED',
+  );
+  assert.equal(
+    (await db.query(sql, [prepaidBooking, 'approved', amount])).rows[0].status,
+    'REFUNDED',
+  );
+  assert.equal(
+    (await db.query('select status from public.appointments where id=$1', [prepaidBooking])).rows[0]
+      .status,
+    'CANCELADO',
+  );
+});
 test('cliente desativado perde acesso ao portal e às reservas', async () => {
   await asUser(ids.admin);
   await db.query('update public.customers set active=false where id=$1', [portalCustomer]);
@@ -581,4 +733,145 @@ test('cliente desativado perde acesso ao portal e às reservas', async () => {
     db.query("select public.portal_add_vehicle('GHI7J89','Ford','Ka')"),
     /Acesso não permitido/,
   );
+});
+
+test('migration 008 remove somente o bloqueio legado e não cria perfil administrativo', async () => {
+  const target = new PGlite();
+  try {
+    await bootstrap(target);
+    for (const file of readdirSync('supabase/migrations')
+      .sort()
+      .filter((f) => !f.includes('008_customer_signup'))) {
+      await target.exec(
+        readFileSync('supabase/migrations/' + file, 'utf8').replace(
+          'create extension if not exists pgcrypto;',
+          '',
+        ),
+      );
+    }
+    await target.exec(`create function public.create_user_profile() returns trigger language plpgsql as $$begin raise exception using errcode='42501',message='Master provisioning required'; end$$;
+      create constraint trigger on_auth_user_created after insert on auth.users deferrable initially deferred for each row execute function public.create_user_profile();`);
+    await assert.rejects(
+      target.exec(`insert into auth.users values ('${ids.customer}')`),
+      /Master provisioning required/,
+    );
+    const migration = readFileSync('supabase/migrations/202610070008_customer_signup.sql', 'utf8');
+    await target.exec(migration);
+    await target.exec(migration);
+    await target.exec(`insert into auth.users values ('${ids.customer}')`);
+    assert.equal((await target.query('select * from public.profiles')).rows.length, 0);
+    assert.equal((await target.query('select * from public.customer_accounts')).rows.length, 0);
+    await target.query("select set_config('request.jwt.claim.sub',$1,false)", [ids.customer]);
+    await target.exec('set role authenticated');
+    await target.query("select public.register_customer('Cliente de teste','61999998888')");
+    assert.equal((await target.query('select * from public.customer_accounts')).rows.length, 1);
+    assert.equal((await target.query('select * from public.profiles')).rows.length, 0);
+    await target.exec('reset role');
+    await target.exec(readFileSync('supabase/diagnostics/rollback-customer-signup.sql', 'utf8'));
+    await assert.rejects(
+      target.exec(`insert into auth.users values ('${ids.service}')`),
+      /Master provisioning required/,
+    );
+  } finally {
+    await target.close();
+  }
+});
+
+test('confirmação cria uma única OS na fila e cancelamento preserva o histórico', async () => {
+  await asUser(ids.admin);
+  const booking = crypto.randomUUID();
+  await db.query(
+    `insert into public.appointments(id,customer_id,vehicle_id,service_id,starts_at,duration_minutes,status)
+    values($1,$2,$3,$4,now()+interval '250 days',60,'AGENDADO')`,
+    [booking, ids.customer, ids.vehicle, ids.service],
+  );
+  assert.equal(
+    (await db.query('select id from public.work_orders where appointment_id=$1', [booking])).rows
+      .length,
+    0,
+  );
+  await db.query("update public.appointments set status='CONFIRMADO' where id=$1", [booking]);
+  const order = (
+    await db.query('select * from public.work_orders where appointment_id=$1', [booking])
+  ).rows[0];
+  assert.equal(order.status, 'AGUARDANDO');
+  assert.equal(order.customer_id, ids.customer);
+  assert.equal(order.vehicle_id, ids.vehicle);
+  const price = (await db.query('select price from public.services where id=$1', [ids.service]))
+    .rows[0].price;
+  assert.equal(Number(order.total), Number(price));
+  assert.equal(
+    (await db.query('select * from public.work_order_items where work_order_id=$1', [order.id]))
+      .rows.length,
+    1,
+  );
+  await db.query(
+    "update public.appointments set status='CONFIRMADO', starts_at=starts_at+interval '1 hour' where id=$1",
+    [booking],
+  );
+  assert.equal(
+    (await db.query('select id from public.work_orders where appointment_id=$1', [booking])).rows
+      .length,
+    1,
+  );
+  const updated = (
+    await db.query('select expected_at from public.work_orders where id=$1', [order.id])
+  ).rows[0];
+  assert.equal(
+    new Date(updated.expected_at).getTime() - new Date(order.expected_at).getTime(),
+    3600000,
+  );
+  await db.query("select public.transition_order($1,'EM_SERVICO')", [order.id]);
+  await assert.rejects(
+    db.query("update public.appointments set status='CANCELADO' where id=$1", [booking]),
+    /não pode ser cancelada/,
+  );
+  await db.exec('reset role');
+  await db.query("update public.work_orders set status='AGUARDANDO' where id=$1", [order.id]);
+  await asUser(ids.admin);
+  await db.query("update public.appointments set status='CANCELADO' where id=$1", [booking]);
+  assert.equal(
+    (await db.query('select status from public.work_orders where id=$1', [order.id])).rows[0]
+      .status,
+    'CANCELADO',
+  );
+  await assert.rejects(
+    db.query("update public.appointments set status='CONFIRMADO' where id=$1", [booking]),
+    /OS cancelada/,
+  );
+  await assert.rejects(
+    db.query('select public.ensure_appointment_work_order($1)', [booking]),
+    /permission denied/,
+  );
+});
+
+test('migration da fila recupera confirmados sem exigir pagamentos online', async () => {
+  const target = new PGlite();
+  try {
+    await bootstrap(target);
+    for (const file of readdirSync('supabase/migrations')
+      .sort()
+      .filter((f) => !f.includes('009_') && !f.includes('010_'))) {
+      await target.exec(
+        readFileSync('supabase/migrations/' + file, 'utf8').replace(
+          'create extension if not exists pgcrypto;',
+          '',
+        ),
+      );
+    }
+    await target.exec(`insert into public.customers(id,name,phone) values('${ids.customer}','Cliente','11987654321');
+      insert into public.vehicles(id,customer_id,plate,brand,model) values('${ids.vehicle}','${ids.customer}','ABC1D23','Marca','Modelo');
+      insert into public.services(id,name,price,duration_minutes) values('${ids.service}','Lavagem',85,60);
+      insert into public.appointments(customer_id,vehicle_id,service_id,starts_at,duration_minutes,status) values('${ids.customer}','${ids.vehicle}','${ids.service}',now()+interval '1 day',60,'CONFIRMADO');`);
+    await target.exec(
+      readFileSync('supabase/migrations/202610080010_appointment_work_orders.sql', 'utf8'),
+    );
+    const orders = (await target.query('select * from public.work_orders')).rows;
+    assert.equal(orders.length, 1);
+    assert.equal(orders[0].status, 'AGUARDANDO');
+    assert.equal(orders[0].created_by, null);
+    assert.equal(Number(orders[0].total), 85);
+  } finally {
+    await target.close();
+  }
 });

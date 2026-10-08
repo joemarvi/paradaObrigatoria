@@ -73,3 +73,21 @@ Este procedimento atende à falha relatada de `001`; não reaplique `001` se ela
 A migration `202610060007_customer_portal.sql` é incremental para bancos com `001` a `006` aplicadas. `customer_accounts` liga `auth.users` a um cliente e usa RLS de leitura do próprio vínculo. Não há trigger público de criação de perfis de equipe. Depois da confirmação e autenticação, `register_customer` provisiona o vínculo de forma idempotente e não aceita `customer_id` ou papel do usuário. Não vincula automaticamente cadastros existentes por contato.
 
 As políticas adicionais permitem somente consultas de cliente, veículos e agendamentos próprios, além de serviços ativos. Os clientes escrevem apenas pelas RPCs `portal_add_vehicle`, `portal_book` e `portal_cancel`. A reserva usa a duração do catálogo e o trigger existente de capacidade sob trava transacional. O cliente não escolhe o status nem o proprietário da reserva, e só cancela reservas futuras em estado agendado/confirmado. Clientes desativados não acessam dados operacionais do portal.
+
+## Cadastro bloqueado por provisionamento master (migration 008)
+
+No projeto hospedado foi identificado o constraint trigger `auth.users.on_auth_user_created`, que chama `public.create_user_profile()` e exige um administrador master de um fluxo legado de tenants. O erro `Master provisioning required` desfaz a criação do usuário após o envio do e-mail. O responsável confirmou que o projeto é exclusivo da Parada Obrigatória.
+
+Aplique `supabase/migrations/202610070008_customer_signup.sql` no SQL Editor do projeto correto, após a migration 007. O script verifica a assinatura do trigger diagnosticado e remove somente esse trigger. Preserva a função legada e todas as tabelas, dados e políticas. Pode ser executado novamente. Se encontrar um trigger com definição diferente, interrompe a transação para revisão.
+
+Depois, faça um novo cadastro com um e-mail sob seu controle, confirme que o usuário aparece em Authentication → Users, abra a confirmação e conclua o cadastro no portal com Salvar Cadastro. Confira o vínculo em `customer_accounts` e o cliente em `customers`; não deve surgir perfil de equipe em `profiles`. Um e-mail enviado durante uma transação desfeita não comprova que o usuário existe; use a confirmação do novo cadastro.
+
+A reversão manual está em `supabase/diagnostics/rollback-customer-signup.sql` e restaura o bloqueio anterior. Esta migration não configura SMTP nem aplica alterações automaticamente ao projeto hospedado.
+
+## Agendamento Confirmado e Fila
+
+Aplique `202610080010_appointment_work_orders.sql` no SQL Editor após as migrations do schema/portal (001–008). A migration 009 de pagamentos é opcional para esse ajuste. A confirmação passa a criar uma OS em **AGUARDANDO** com serviço, cliente, veículo, valor e previsão de conclusão. O vínculo `work_orders.appointment_id` é único. Reservas já confirmadas também recebem uma OS durante a aplicação; revise previamente eventuais OS criadas manualmente para as mesmas reservas, pois não existe vínculo confiável para identificá-las automaticamente.
+
+Cancelar uma reserva cancela a OS vinculada que ainda está aguardando e não recebeu pagamentos. Uma OS iniciada ou paga exige tratamento pela equipe. O campo `created_by` pode ser nulo em confirmações automáticas, sem atribuir a ação a um funcionário fictício. Não execute criação manual adicional da OS ao confirmar.
+
+Se aparecer a mensagem genérica de erro inesperado, o Console passa a registrar o erro original e a stack para diagnóstico. Essa mensagem, sozinha, não identifica a causa.

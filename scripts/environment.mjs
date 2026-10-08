@@ -32,8 +32,10 @@ try {
 } catch (e) {
   if (e.message.includes('service_role')) throw e;
 }
+const onlinePayments =
+  (process.env.ONLINE_PAYMENTS_ENABLED ?? local.ONLINE_PAYMENTS_ENABLED ?? 'false') === 'true';
 const demo = !url && (process.env.DEMO_MODE ?? local.DEMO_MODE ?? 'true') === 'true';
 writeFileSync(
   'src/app/core/environment.ts',
-  `// Generated: public configuration only.\nexport const environment = ${JSON.stringify({ supabaseUrl: url, supabaseAnonKey: key, demo }, null, 2)} as const;\n`,
+  `// Generated: public configuration only.\nexport const environment = ${JSON.stringify({ supabaseUrl: url, supabaseAnonKey: key, demo, onlinePayments }, null, 2)} as const;\n`,
 );

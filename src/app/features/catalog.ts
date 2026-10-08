@@ -1,3 +1,5 @@
+import { Notifications } from '../core/notifications';
+import { PageLoading } from '../shared/feedback';
 import { NumericInputDirective } from '../shared/numeric-input';
 import { InputMaskDirective } from '../shared/input-mask';
 import { alphabetical, VEHICLE_BRANDS, VEHICLE_COLORS } from '../core/vehicle-options';
@@ -125,6 +127,7 @@ const CONFIG: Record<string, CatalogConfig> = {
 @Component({
   selector: 'app-catalog',
   imports: [
+    PageLoading,
     NumericInputDirective,
     InputMaskDirective,
     ReactiveFormsModule,
@@ -174,7 +177,7 @@ const CONFIG: Record<string, CatalogConfig> = {
     </div>
     <section class="panel">
       @if (fetching()) {
-        <div class="loading-placeholder" role="status">Buscando registros…</div>
+        <app-page-loading [active]="true" />
       } @else if (rows().length) {
         <div class="table-wrap">
           <table>
@@ -315,15 +318,6 @@ const CONFIG: Record<string, CatalogConfig> = {
                     <small class="help">Escolha uma opção ou digite outra.</small>
                   }
                 }
-                @if (form.get(field.key)?.invalid && form.get(field.key)?.touched) {
-                  <small class="form-error">{{
-                    field.key === 'document'
-                      ? 'Informe um CPF ou CNPJ válido.'
-                      : field.key === 'plate'
-                        ? 'Use uma placa válida (ABC1234 ou ABC1D23).'
-                        : 'Verifique o formato e preencha corretamente.'
-                  }}</small>
-                }
               </label>
             }
           </div>
@@ -392,6 +386,7 @@ const CONFIG: Record<string, CatalogConfig> = {
   `,
 })
 export class Catalog implements OnDestroy {
+  readonly notices = inject(Notifications);
   readonly store = inject(Store);
   readonly route = inject(ActivatedRoute);
   readonly fb = inject(FormBuilder);
@@ -559,7 +554,18 @@ export class Catalog implements OnDestroy {
   }
   async save() {
     this.form.markAllAsTouched();
-    if (this.form.invalid) return;
+    if (this.form.invalid) {
+      const fields = this.config.fields
+        .filter((field) => this.form.get(field.key)?.invalid)
+        .map((field) => field.label);
+      this.notices.show(
+        'Revise os campos: ' +
+          fields.join(', ') +
+          '. Informe documentos, telefones e placas válidos quando preenchidos.',
+        true,
+      );
+      return;
+    }
     const value: Row = { ...this.form.getRawValue() };
     for (const f of this.config.fields) {
       if (value[f.key] === '') value[f.key] = null;

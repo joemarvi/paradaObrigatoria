@@ -16,7 +16,8 @@ registerLocaleData(pt);
 @Injectable()
 class AppErrorHandler implements ErrorHandler {
   private notices = inject(Notifications);
-  handleError() {
+  handleError(error: unknown) {
+    console.error(error);
     this.notices.show('Ocorreu um erro inesperado. Atualize a página e tente novamente.', true);
   }
 }

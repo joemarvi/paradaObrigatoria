@@ -160,3 +160,81 @@ test('cadastro compacto sem navbar ou rolagem e botões de acesso adjacentes', a
     expect(dimensions.scrollHeight, JSON.stringify(dimensions)).toBeLessThanOrEqual(height);
   }
 });
+
+test('menus da home navegam às seções e às páginas de acesso', async ({ page }) => {
+  await page.route('https://portal-test.supabase.co/**', (route) => route.abort());
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto('/');
+    await page.getByRole('link', { name: 'Serviços e preços', exact: true }).click();
+    await expect
+      .poll(() =>
+        page.locator('#servicos').evaluate((el) => Math.abs(el.getBoundingClientRect().top)),
+      )
+      .toBeLessThan(80);
+    await page.locator('.home-nav').scrollIntoViewIfNeeded();
+    await page.getByRole('link', { name: 'Onde estamos', exact: true }).click();
+    await expect(page.locator('#contato')).toBeInViewport();
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(100);
+    for (const [name, destination] of [
+      ['Criar conta', '/cliente/cadastro'],
+      ['Entrar', '/cliente/entrar'],
+      ['Agendar', '/cliente/entrar'],
+    ]) {
+      await page.goto('/');
+      await page.locator('.home-nav').getByRole('link', { name, exact: true }).click();
+      await expect(page).toHaveURL(new RegExp(destination + '$'));
+    }
+  }
+});
+
+test('sessão administrativa não devolve menus de acesso do cliente para a home', async ({
+  page,
+}) => {
+  const user = {
+    id: '00000000-0000-4000-8000-000000000001',
+    email: 'equipe@example.com',
+    aud: 'authenticated',
+    role: 'authenticated',
+    user_metadata: {},
+    app_metadata: {},
+  };
+  await page.addInitScript(
+    ({ user }) => {
+      localStorage.setItem(
+        'sb-portal-test-auth-token',
+        JSON.stringify({
+          access_token: 'test-token',
+          refresh_token: 'test-refresh',
+          expires_at: Math.floor(Date.now() / 1000) + 3600,
+          expires_in: 3600,
+          token_type: 'bearer',
+          user,
+        }),
+      );
+    },
+    { user },
+  );
+  await page.route('https://portal-test.supabase.co/**', async (route) => {
+    const path = new URL(route.request().url()).pathname;
+    const result = path.endsWith('/profiles')
+      ? { id: user.id, name: 'Equipe', role: 'administrador', active: true }
+      : user;
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(result),
+    });
+  });
+  for (const [name, destination, title] of [
+    ['Entrar', '/cliente/entrar', 'Entre para Agendar'],
+    ['Agendar', '/cliente/entrar', 'Entre para Agendar'],
+    ['Criar conta', '/cliente/cadastro', 'Crie sua Conta'],
+  ]) {
+    await page.goto('/');
+    await page.locator('.home-nav').getByRole('link', { name, exact: true }).click();
+    await expect(page).toHaveURL(new RegExp(destination + '$'));
+    await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();
+    await expect(page.locator('a[href^="/admin"]')).toHaveCount(0);
+  }
+});

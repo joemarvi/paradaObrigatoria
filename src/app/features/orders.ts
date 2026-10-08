@@ -1,3 +1,4 @@
+import { Feedback } from '../shared/feedback';
 import { NumericInputDirective } from '../shared/numeric-input';
 import { Component, computed, inject, signal } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
@@ -12,6 +13,7 @@ import { Notifications } from '../core/notifications';
 @Component({
   selector: 'app-orders',
   imports: [
+    Feedback,
     NumericInputDirective,
     CurrencyPipe,
     DatePipe,
@@ -277,7 +279,7 @@ import { Notifications } from '../core/notifications';
             <span>Valor estimado</span><strong>{{ estimated() | currency: 'BRL' }}</strong>
           </div>
           @if (formError()) {
-            <p class="form-error" role="alert">{{ formError() }}</p>
+            <app-feedback [message]="formError()" kind="error" (dismissed)="formError.set('')" />
           }
           <div class="form-actions">
             <button type="button" class="button" (click)="entry.set(false)">Cancelar</button

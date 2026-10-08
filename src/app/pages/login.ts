@@ -1,3 +1,4 @@
+import { Feedback, PageLoading } from '../shared/feedback';
 import { EmailInputDirective } from '../shared/input-mask';
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -8,113 +9,114 @@ import { friendlyError } from '../core/notifications';
 import { Icon } from '../shared/ui';
 @Component({
   selector: 'app-login',
-  imports: [EmailInputDirective, ReactiveFormsModule, Icon],
-  template: `<main class="login-page">
-    <section class="login-story">
-      <span class="login-brand-name">Lava Jato · Parada Obrigatória</span>
-      <div>
-        <span class="eyebrow">CUIDADO EM CADA DETALHE</span>
-        <h1>Seu lava-jato.<br />Sua operação.<br /><em>Tudo em ordem.</em></h1>
-        <p>
-          Do primeiro atendimento ao fechamento do caixa, tenha uma visão clara do que acontece.
-        </p>
-        <div class="login-features">
-          <span><app-icon name="car" /> Atendimento ágil</span
-          ><span><app-icon name="cash" /> Controle do caixa</span
-          ><span><app-icon name="chart" /> Gestão inteligente</span>
-        </div>
-      </div>
-      <small>Parada Obrigatória · Gestão do lava-jato</small>
-    </section>
-    <section class="login-form-panel">
-      <form class="login-form" [formGroup]="form" (ngSubmit)="submit()">
-        <span class="eyebrow">BEM-VINDO À PARADA</span>
-        <h2>
-          {{
-            auth.recovery()
-              ? 'Defina sua Nova Senha'
-              : recovering()
-                ? 'Recuperar Acesso'
-                : 'Entre na sua conta'
-          }}
-        </h2>
-        <p>
-          {{
-            recovering()
-              ? 'Enviaremos um link para redefinir sua senha.'
-              : 'Acesse o painel para começar o dia.'
-          }}
-        </p>
-        @if (!auth.recovery()) {
-          <label
-            >E-mail<input
-              type="email"
-              formControlName="email"
-              autocomplete="username"
-              placeholder="@teste.com"
-          /></label>
-        }
-        @if (!recovering()) {
-          <label
-            >{{ auth.recovery() ? 'Nova senha' : 'Senha'
-            }}<input
-              [type]="showPassword() ? 'text' : 'password'"
-              formControlName="password"
-              [attr.autocomplete]="auth.recovery() ? 'new-password' : 'current-password'"
-              placeholder="Mínimo de 8 caracteres"
-          /></label>
-        }
-        @if (!recovering()) {
-          <label class="password-toggle"
-            ><input
-              type="checkbox"
-              [checked]="showPassword()"
-              (change)="showPassword.set($any($event.target).checked)"
-            />Mostrar senha</label
-          >
-        }
-        @if (error()) {
-          <p class="form-error" role="alert">{{ error() }}</p>
-        }
-        @if (message()) {
-          <p class="alert success" role="status">{{ message() }}</p>
-        }
-        <button
-          class="button primary full"
-          [disabled]="busy() || !auth.initialized() || !auth.client"
-        >
-          {{
-            busy()
-              ? 'Aguarde…'
-              : auth.recovery()
-                ? 'Salvar nova senha'
-                : recovering()
-                  ? 'Enviar link'
-                  : 'Entrar no sistema'
-          }}<app-icon name="arrow" />
-        </button>
-        @if (!auth.recovery()) {
-          <button type="button" class="text-button" (click)="toggleRecovery()">
-            {{ recovering() ? 'Voltar ao login' : 'Esqueci minha senha' }}
-          </button>
-        }
-        @if (auth.initialized() && !auth.client) {
-          <div class="setup-note">
-            Supabase ainda não configurado. Consulte o README para ativar o acesso seguro.
+  imports: [Feedback, PageLoading, EmailInputDirective, ReactiveFormsModule, Icon],
+  template: `<app-page-loading [active]="busy() || !auth.initialized()" />
+    <main class="login-page">
+      <section class="login-story">
+        <span class="login-brand-name">Lava Jato · Parada Obrigatória</span>
+        <div>
+          <span class="eyebrow">CUIDADO EM CADA DETALHE</span>
+          <h1>Seu lava-jato.<br />Sua operação.<br /><em>Tudo em ordem.</em></h1>
+          <p>
+            Do primeiro atendimento ao fechamento do caixa, tenha uma visão clara do que acontece.
+          </p>
+          <div class="login-features">
+            <span><app-icon name="car" /> Atendimento ágil</span
+            ><span><app-icon name="cash" /> Controle do caixa</span
+            ><span><app-icon name="chart" /> Gestão inteligente</span>
           </div>
-        }
-        @if (demoAllowed) {
-          <div class="login-divider"><span>Conheça o sistema</span></div>
-          <button type="button" class="button full" (click)="demo()">
-            Abrir demonstração<app-icon name="arrow" />
+        </div>
+        <small>Parada Obrigatória · Gestão do lava-jato</small>
+      </section>
+      <section class="login-form-panel">
+        <form class="login-form" [formGroup]="form" (ngSubmit)="submit()">
+          <span class="eyebrow">BEM-VINDO À PARADA</span>
+          <h2>
+            {{
+              auth.recovery()
+                ? 'Defina sua Nova Senha'
+                : recovering()
+                  ? 'Recuperar Acesso'
+                  : 'Entre na sua conta'
+            }}
+          </h2>
+          <p>
+            {{
+              recovering()
+                ? 'Enviaremos um link para redefinir sua senha.'
+                : 'Acesse o painel para começar o dia.'
+            }}
+          </p>
+          @if (!auth.recovery()) {
+            <label
+              >E-mail<input
+                type="email"
+                formControlName="email"
+                autocomplete="username"
+                placeholder="@teste.com"
+            /></label>
+          }
+          @if (!recovering()) {
+            <label
+              >{{ auth.recovery() ? 'Nova senha' : 'Senha'
+              }}<input
+                [type]="showPassword() ? 'text' : 'password'"
+                formControlName="password"
+                [attr.autocomplete]="auth.recovery() ? 'new-password' : 'current-password'"
+                placeholder="Mínimo de 8 caracteres"
+            /></label>
+          }
+          @if (!recovering()) {
+            <label class="password-toggle"
+              ><input
+                type="checkbox"
+                [checked]="showPassword()"
+                (change)="showPassword.set($any($event.target).checked)"
+              />Mostrar senha</label
+            >
+          }
+          @if (error()) {
+            <app-feedback [message]="error()" kind="error" (dismissed)="error.set('')" />
+          }
+          @if (message()) {
+            <app-feedback [message]="message()" kind="success" (dismissed)="message.set('')" />
+          }
+          <button
+            class="button primary full"
+            [disabled]="busy() || !auth.initialized() || !auth.client"
+          >
+            {{
+              busy()
+                ? 'Aguarde…'
+                : auth.recovery()
+                  ? 'Salvar nova senha'
+                  : recovering()
+                    ? 'Enviar link'
+                    : 'Entrar no sistema'
+            }}<app-icon name="arrow" />
           </button>
-        }
-        <small class="login-security"
-          ><app-icon name="shield" /> Acesso restrito à equipe autorizada</small
-        >
-      </form>
-    </section>
-  </main>`,
+          @if (!auth.recovery()) {
+            <button type="button" class="text-button" (click)="toggleRecovery()">
+              {{ recovering() ? 'Voltar ao login' : 'Esqueci minha senha' }}
+            </button>
+          }
+          @if (auth.initialized() && !auth.client) {
+            <div class="setup-note">
+              Supabase ainda não configurado. Consulte o README para ativar o acesso seguro.
+            </div>
+          }
+          @if (demoAllowed) {
+            <div class="login-divider"><span>Conheça o sistema</span></div>
+            <button type="button" class="button full" (click)="demo()">
+              Abrir demonstração<app-icon name="arrow" />
+            </button>
+          }
+          <small class="login-security"
+            ><app-icon name="shield" /> Acesso restrito à equipe autorizada</small
+          >
+        </form>
+      </section>
+    </main>`,
 })
 export class Login {
   readonly auth = inject(Auth);

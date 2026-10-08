@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, customerGuard, customerAccessGuard } from './core/auth';
+import { authGuard, customerGuard, customerAccessGuard, customerLandingGuard } from './core/auth';
 const office = ['administrador', 'gerente', 'atendente'];
 const management = ['administrador', 'gerente'];
 export const routes: Routes = [
@@ -25,7 +25,12 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/customer-portal').then((m) => m.CustomerPortal),
   },
   { path: 'admin/login', loadComponent: () => import('./pages/login').then((m) => m.Login) },
-  { path: '', pathMatch: 'full', loadComponent: () => import('./pages/home').then((m) => m.Home) },
+  {
+    path: '',
+    pathMatch: 'full',
+    canActivate: [customerLandingGuard],
+    loadComponent: () => import('./pages/home').then((m) => m.Home),
+  },
   {
     path: 'admin',
     canActivate: [authGuard],

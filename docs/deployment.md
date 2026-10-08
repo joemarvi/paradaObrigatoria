@@ -100,3 +100,13 @@ Manifest e ícone local fornecidos. Service worker/caching offline adiado: dados
 `over_email_send_rate_limit` indica que o projeto atingiu a cota de envio de e-mails Auth. O provedor integrado tem limite documentado de 2 e-mails por hora por projeto e restrições de destinatários. Para cadastro público, configurar SMTP próprio em Authentication → Email → SMTP Settings e revisar Authentication → Rate Limits. Configurar remetente, host, porta, usuário e senha no painel Supabase, nunca no frontend. Validar domínio remetente conforme o provedor e testar confirmação e recuperação após a configuração. Aguardar liberação da cota serve apenas para diagnóstico, não substitui configuração de produção.
 
 Referências: [Rate limits](https://supabase.com/docs/guides/auth/rate-limits), [Custom SMTP](https://supabase.com/docs/guides/auth/auth-smtp).
+
+## Pagamentos Online
+
+A configuração de testes do Mercado Pago, migration 009 e Edge Functions está em [mercadopago.md](mercadopago.md). `ONLINE_PAYMENTS_ENABLED` permanece `false` por padrão; não habilite antes de configurar o backend. A versão atual bloqueia cobranças reais.
+
+## Expiração por Inatividade
+
+Sessões no navegador expiram após 8 minutos sem interação. Cliques, movimentos do ponteiro, teclado, toque e rolagem renovam o prazo; consultas e atualização automática do token não renovam. A última atividade é compartilhada entre abas e preservada após recarregamento. Ao voltar de uma aba suspensa, o prazo é verificado antes de aceitar nova atividade.
+
+Clientes retornam para `/cliente/entrar`; contas da equipe retornam para `/admin/login`. O encerramento remove a sessão local e solicita revogação do refresh token da sessão atual. Esse controle não altera o TTL do JWT no servidor; um JWT já emitido permanece sujeito ao prazo do Supabase.

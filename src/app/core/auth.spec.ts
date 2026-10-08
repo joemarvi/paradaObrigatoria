@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { SESSION_IDLE_MS } from './session-activity';
 import { AUTH_CONFIGURATION, Auth, authGuard, customerGuard } from './auth';
 const router = {
   navigateByUrl: vi.fn(() => Promise.resolve(true)),
@@ -136,7 +137,7 @@ describe('Autenticação e controle de acesso', () => {
     auth.client = fakeClient();
     await auth.login('equipe@example.com', 'senha-teste');
     await TestBed.runInInjectionContext(() => customerGuard(route, {} as RouterStateSnapshot));
-    expect(router.createUrlTree).toHaveBeenLastCalledWith(['/']);
+    expect(router.createUrlTree).toHaveBeenLastCalledWith(['/cliente/entrar']);
   });
   it('login administrativo recusa cliente mesmo com cadastro ativo', async () => {
     const auth = TestBed.inject(Auth);
@@ -162,5 +163,21 @@ describe('Autenticação e controle de acesso', () => {
     expect(auth.user()).toBeNull();
     expect(auth.customer()).toBeNull();
     expect(router.navigateByUrl).toHaveBeenLastCalledWith('/admin/login');
+  });
+  it('inatividade encerra a conta da equipe e redireciona para login administrativo', async () => {
+    vi.useFakeTimers();
+    try {
+      const auth = TestBed.inject(Auth);
+      await auth.ready;
+      auth.client = fakeClient();
+      await auth.login('equipe@example.com', 'senha-teste');
+      await vi.advanceTimersByTimeAsync(SESSION_IDLE_MS);
+      expect(auth.user()).toBeNull();
+      expect(auth.profile()).toBeNull();
+      expect(router.navigateByUrl).toHaveBeenLastCalledWith('/admin/login');
+      expect(auth.client.auth.signOut).toHaveBeenCalledWith({ scope: 'local' });
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
